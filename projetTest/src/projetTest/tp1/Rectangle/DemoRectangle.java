@@ -13,6 +13,10 @@ public class DemoRectangle {
 		System.out.println("Hauteur du rectangle : " + rectangle.getHauteur());
 		System.out.println("Périmètre du rectangle : " + rectangle.perimetre());
 		System.out.println("Surface du rectangle : " + rectangle.surface());
+		unPoint.setX(27);
+		unPoint.setY(90);
+		System.out.println("Nouvelles coordonnées abscisse : " + unPoint.getX());
+		System.out.println("Nouvelles coordonnées ordonnée : " + unPoint.getY());
 	}
 
 }
