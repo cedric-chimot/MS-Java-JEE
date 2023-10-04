@@ -3,6 +3,8 @@ package projetTest.tp2.nbComplexes;
 public class Complexe {
 	private double a = 0;
 	private double b = 0;
+	private double cosTeta;
+	private double sinTeta;
 	
 	public Complexe(double unA, double unB) {
 		a = unA;
@@ -14,11 +16,11 @@ public class Complexe {
 	}
 	
 	public double argument() {
-		return Math.cos(a/(a + b));
+		return this.cosTeta = (a/module());
 	}
 	
 	public double argument1() {
-		return Math.sin(b/(a + b));
+		return this.sinTeta = (b/module());
 	}
 	
 	public static Complexe somme(Complexe a1, Complexe a2) 
@@ -37,7 +39,7 @@ public class Complexe {
 		Complexe a3 = new Complexe(0,0);
 		
 		a3.a = a1.a * a2.a - a1.b * a2.b;
-		a3.b = a1.a * a2.b + a1.b * a2.b;
+		a3.b = a1.a * a2.b + a1.b * a2.a;
 		
 		return a3;
 	}
@@ -52,6 +54,14 @@ public class Complexe {
 
 	public double getB() {
 		return b;
+	}
+
+	public double getCosTeta() {
+		return cosTeta;
+	}
+
+	public double getSinTeta() {
+		return sinTeta;
 	}
 	
 }
