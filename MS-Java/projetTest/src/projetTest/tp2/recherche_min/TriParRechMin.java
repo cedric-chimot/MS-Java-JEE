@@ -11,11 +11,11 @@ public class TriParRechMin {
 		
 		tab[0] = 10;
 		tab[1] = 8;
-		tab[2] = 50;
-		tab[3] = 20;
-		tab[4] = 17;
+		tab[2] = 20;
+		tab[3] = 50;
+		tab[4] = 3;
 		
-		for(int i = 0 ; i < (tab.length-1) ; i++) {
+		for(int i = 0 ; i < tab.length ; i++) {
 			min = tab[i];
 			indiceMin = i;
 			for(int j = i ; j < tab.length ; j++) {
