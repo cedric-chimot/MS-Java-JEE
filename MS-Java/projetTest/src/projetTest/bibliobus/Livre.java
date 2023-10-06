@@ -8,7 +8,7 @@ public class Livre {
 	private String editeur;
 	private int exemplaires = 1;
 	// Genre récupéré dans l'enum "Genre"
-	Genre genre;
+	private Genre genre;
 	
 	// auteur,titre et éditeur sont non modifiables
 	// si le genre est précisé on l'affiche
@@ -97,7 +97,7 @@ public class Livre {
 	// chaine de caractères pour afficher les caractéristiques d'un livre
 	public String toString() {
 		return "ID : " + id + "\nTitre : " + titre + "\nAuteur : " + auteur + "\nEditeur : " + editeur
-				+ "\nExemplaires : " + exemplaires + "\nGenre : " + genre;		
+				+ "\nExemplaires : " + exemplaires + "\nGenre : " + genre;
 	}
 	
 	// un exemplaire du livre est dans la bibliothèque
