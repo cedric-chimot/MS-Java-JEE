@@ -97,7 +97,7 @@ public class Livre {
 	// chaine de caractères pour afficher les caractéristiques d'un livre
 	public String toString() {
 		return "ID : " + id + "\nTitre : " + titre + "\nAuteur : " + auteur + "\nEditeur : " + editeur
-				+ "\nExemplaires : " + exemplaires + "\nGenre : " + genre;
+				+ "\nExemplaires : " + exemplaires + "\nGenre : " + genre + "\n";
 	}
 	
 	// un exemplaire du livre est dans la bibliothèque
