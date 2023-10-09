@@ -14,8 +14,8 @@ public class Livre {
 	// si le genre est précisé on l'affiche
 	public Livre(int id, String tit, String aut, String edit, int exemp, Genre genre) {
 		this.id = id;
-		titre = tit;
-		auteur = aut;
+		titre = tit.toUpperCase();
+		auteur = aut.toUpperCase();
 		editeur = edit;
 		exemplaires = exemp;
 		this.genre = genre;
@@ -24,11 +24,11 @@ public class Livre {
 	// dans le cas ou le genre n'est pas précisé
 	public Livre(int id, String tit, String aut, String edit, int exemp) {
 		this.id = id;
-		titre = tit;
-		auteur = aut;
+		titre = tit.toUpperCase();
+		auteur = aut.toUpperCase();
 		editeur = edit;
 		exemplaires = exemp;
-		genre = Genre.Non_spécifié;
+		genre = Genre.Non_specifie;
 	}
 
     // Créer une nouvelle instance de Livre avec les mêmes attributs que le livre actuel,
@@ -114,4 +114,5 @@ public class Livre {
 		}
 		return false;
 	}
+
 }

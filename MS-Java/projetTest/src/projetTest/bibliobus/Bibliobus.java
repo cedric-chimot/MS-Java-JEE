@@ -14,21 +14,22 @@ public class Bibliobus {
     private int nbLivres;
 
     // Constructeur pour un nouveau bibliobus
-    public Bibliobus(String nom) {
+    public Bibliobus(String nom, int capaciteMax) {
         this.nom = nom;
-        this.capaciteMax = 100;
+        this.capaciteMax = 200;
         this.tabLivres = new ArrayList<>();
         this.nbLivres = 0;
     }
 
     // Constructeur pour un bibliobus existant
-    public Bibliobus(String nom,int capaciteMax, int nbLivres) {
+    public Bibliobus(String nom, int capaciteMax, int nbLivres) {
         this.nom = nom;
         this.capaciteMax = capaciteMax;
         this.nbLivres = nbLivres;
         this.tabLivres = new ArrayList<>();
     }
 
+    // Getters et setters
     public String getNom() {
         return nom;
     }
@@ -51,21 +52,34 @@ public class Bibliobus {
             + "\nNombre de livres : " + getNbLivres() + "\n";
     }
 
-    // Ajouter un livre en vérifiant qu'il y a suffisamment de place
+    // Ajouter un livre en vérifiant s'il existe déjà un livre équivalent
     public boolean ajoutLivre(int id, String titre, String auteur, String editeur, int exemplaires, Genre genre) {
-        // Vérifier s'il y a assez de place avant d'ajouter
+        for (Livre livreExist : tabLivres) {
+            if (livreExist.getTitre().equalsIgnoreCase(titre)
+            		&& livreExist.getAuteur().equalsIgnoreCase(auteur)
+            		&& livreExist.getEditeur().equalsIgnoreCase(editeur)) {
+            	livreExist.nouvelExemplaire(exemplaires); // Incrémente le nombre d'exemplaires du livre existant
+            	nbLivres += exemplaires;
+            	capaciteMax -= exemplaires;
+            	return true; // Livre ajouté avec succès
+            }
+        }
+
+        // Aucun livre équivalent trouvé, vérifier s'il y a assez de place
         if (exemplaires <= capaciteMax) {
             // Créer un nouveau livre
             Livre livre = new Livre(id, titre, auteur, editeur, exemplaires, genre);
             // Ajouter le livre à la liste
             tabLivres.add(livre);
             // Incrémenter le nombre de livres par rapport aux exemplaires
-            nbLivres+=exemplaires;
+            nbLivres += exemplaires;
             // Décrémenter la capacité max suivant le nombre d'exemplaires
-            capaciteMax-=exemplaires;
+            capaciteMax -= exemplaires;
             return true;
+        } else {
+            System.out.println("Capacité maximale atteinte, impossible d'ajouter un livre !\n");
+            return false;
         }
-        return false;
     }
 
     // Afficher le catalogue du bibliobus
@@ -99,15 +113,44 @@ public class Bibliobus {
     }
     
     public void afficheLivre(int identifiant) {
+    	// on compare l'indice et on vérifie sa présence dans le tableau
     	if(identifiant < tabLivres.size()) {
+    		// s'il existe on affiche ses caractéristiques
     		Livre livre = tabLivres.get(identifiant);
             System.out.println("Caractéristiques du livre (Identifiant " + identifiant + "):");
             System.out.println(livre.toString());
     	} else {
-    		System.out.println("L'identifiant est incorrect ou le livre n'existe pas !");
+    		System.out.println("L'identifiant est incorrect ou le livre n'existe pas !\n");
     	}
-        
     }
 
+    // Afficher les livres par auteur
+    public void nbExempAuteur(String auteur) {
+    	// total d'exemplaires de base à 0
+    	int totalExemp = 0;
+    	// boucle "for" pour parcourir le tableau de livres
+    	for(Livre livre : tabLivres) {
+    		// "ignore case" : pour ignorer la casse au moment de la saise du nom de l'auteur
+    		// on va chercher le nom de l'auteur correspondant
+    		if(livre.getAuteur().equalsIgnoreCase(auteur)) {
+    			totalExemp += livre.getExemplaires();
+    		}
+    	}
+    	System.out.println("Nombre de livres de l'auteur " + auteur + " dans le bus "
+    			+ nom + " : " + totalExemp + " livres.\n");
+    }
+    
+    // Afficher les livres par genre
+    public void nbExempGenre(Genre genre) {
+    	int totalExemp = 0;
+    	for(Livre livre : tabLivres) {
+    		// on va chercher le genre correspondant
+    		if(livre.getGenre() == genre) {
+    			totalExemp += livre.getExemplaires();
+    		}
+    	}
+    	System.out.println("Nombre de livres du genre " + genre + " dans le bus "
+    			+ nom + " : " + totalExemp + " livres.\n");
+    }
     
 }
