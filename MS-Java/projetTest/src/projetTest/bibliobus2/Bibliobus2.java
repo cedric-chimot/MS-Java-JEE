@@ -1,10 +1,13 @@
-package projetTest.bibliobus;
+package projetTest.bibliobus2;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class Bibliobus {
-    // Nom du bibliobus
+import projetTest.bibliobus.Genre;
+import projetTest.bibliobus.Livre;
+
+public class Bibliobus2 {
+	// Nom du bibliobus
     private String nom;
     // Liste des livres
     private List<Livre> tabLivres = new ArrayList<Livre>();
@@ -14,7 +17,7 @@ public class Bibliobus {
     private int nbLivres;
 
     // Constructeur pour un nouveau bibliobus
-    public Bibliobus(String nom, int capaciteMax) {
+    public Bibliobus2(String nom, int capaciteMax) {
         this.nom = nom;
         this.capaciteMax = 200;
         this.tabLivres = new ArrayList<>();
@@ -22,7 +25,7 @@ public class Bibliobus {
     }
 
     // Constructeur pour un bibliobus existant
-    public Bibliobus(String nom, int capaciteMax, int nbLivres) {
+    public Bibliobus2(String nom, int capaciteMax, int nbLivres) {
         this.nom = nom;
         this.capaciteMax = capaciteMax;
         this.nbLivres = nbLivres;
