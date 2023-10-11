@@ -1,14 +1,14 @@
 package projetTest.bibliobus2;
 
 public class Livre2 extends Media {
-	// attributs des livres
-	private int id;
-	private String titre;
-	private String auteur;
+	// attributs des livres apportés par la classe Media
+	//private int id;
+	//private String titre;
+	//private String auteur;
+	//private int exemplaires = 1;
+	//private Genre2 genre;
+	
 	private String editeur;
-	private int exemplaires = 1;
-	// Genre récupéré dans l'enum "Genre"
-	private Genre2 genre;
 	private String nomBus;
 	
 	// auteur,titre et éditeur sont non modifiables
@@ -31,36 +31,8 @@ public class Livre2 extends Media {
 	    return newEdit;
 	}
 
-	public int getId() {
-		return id;
-	}
-	
-	public String getTitre() {
-		return titre;
-	}
-
-	public String getAuteur() {
-		return auteur;
-	}
-
 	public String getEditeur() {
 		return editeur;
-	}
-
-	public Genre2 getGenre() {
-		return genre;
-	}
-
-	public void setGenre(Genre2 genre) {
-		this.genre = genre;
-	}
-	
-	public int getExemplaires() {
-		return exemplaires;
-	}
-	
-	public void setExemplaires(int exemplaires) {
-		this.exemplaires = exemplaires;
 	}
 
 	public String getNomBus() {
@@ -108,11 +80,21 @@ public class Livre2 extends Media {
 		return false;
 	}
 	
-	/*public boolean equals(Livre l) {
+	public boolean equals(Livre2 l) {
 		if (this.titre == l.titre && this.auteur == l.auteur && this.editeur == l.editeur) {
 			return true;
 		}
 		return false;
-	}*/
+	}
+	
+	// Vérification de la présence du genre dans le tableau de genre de la classe "Média"
+	public boolean genreCorrect(Genre2 genre) {
+		for(Genre2 g : genres) {
+			if(g == genre) {
+				return true;
+			}
+		}
+		return false;
+	}
 
 }

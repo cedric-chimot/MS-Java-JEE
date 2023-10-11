@@ -10,26 +10,32 @@ public class Bibliobus2 {
 	// Nom du bibliobus
     private String nom;
     // Liste des livres
-    private List<Livre> tabLivres = new ArrayList<Livre>();
+    private List<Livre2> tabLivres = new ArrayList<Livre2>();
+    private List<Disque> tabDisques = new ArrayList<Disque>();
     // Capacité maximale de livres dans le bus (constante)
     private int capaciteMax; 
     // Nombre de livres dans le bibliobus
     private int nbLivres;
+    private int nbDisques;
 
     // Constructeur pour un nouveau bibliobus
     public Bibliobus2(String nom, int capaciteMax) {
         this.nom = nom;
         this.capaciteMax = 200;
         this.tabLivres = new ArrayList<>();
+        this.tabDisques = new ArrayList<>();
         this.nbLivres = 0;
+        this.nbDisques = 0;
     }
 
     // Constructeur pour un bibliobus existant
-    public Bibliobus2(String nom, int capaciteMax, int nbLivres) {
+    public Bibliobus2(String nom, int capaciteMax, int nbLivres, int nbDisques) {
         this.nom = nom;
         this.capaciteMax = capaciteMax;
         this.nbLivres = nbLivres;
+        this.nbDisques = nbDisques;
         this.tabLivres = new ArrayList<>();
+        this.tabDisques = new ArrayList<>();
     }
 
     // Getters et setters
@@ -37,9 +43,13 @@ public class Bibliobus2 {
         return nom;
     }
 
-    public List<Livre> getListeLivres() {
+    public List<Livre2> getListeLivres() {
         return tabLivres;
     }
+    
+	public List<Disque> getTabDisques() {
+		return tabDisques;
+	}
 
     public int getCapaciteMax() {
         return capaciteMax;
@@ -48,17 +58,22 @@ public class Bibliobus2 {
     public int getNbLivres() {
         return nbLivres;
     }
+    
+	public int getNbDisques() {
+		return nbDisques;
+	}
 
     // toString pour le bibliobus
     public String toString() {
-        return "Nom du bibliobus : " + getNom() + "\nCapacité : " + capaciteMax
-            + "\nNombre de livres : " + getNbLivres() + "\n";
+        return "Nom du bibliobus : " + getNom() + "\nCapacité : " + capaciteMax+ "\nNombre de livres : " 
+            + getNbLivres() + "\nNombre de disques : " + getNbDisques() + "\n";
     }
 
     // Ajouter un livre en vérifiant s'il existe déjà un livre équivalent
-    public boolean ajoutLivre(String titre, String auteur, String editeur, int exemplaires, Genre genre) {
+    public boolean ajoutLivre(String titre, String auteur, String editeur, int exemplaires, Genre2 genre) {
+    	    	
     	// boucle "for" pour parcourir le tableau et voir si un livre existe
-        for (Livre livreExist : tabLivres) {
+        for (Livre2 livreExist : tabLivres) {
         	// vérifie si le livre existe par rapport à l'auteur, au titre et à l'éditeur
             if (livreExist.getTitre().equalsIgnoreCase(titre)
             		&& livreExist.getAuteur().equalsIgnoreCase(auteur)
@@ -75,7 +90,12 @@ public class Bibliobus2 {
         if (exemplaires <= capaciteMax) {
             // Créer un nouveau livre
         	int newId = tabLivres.size();
-            Livre livre = new Livre(newId, titre, auteur, editeur, exemplaires, genre);
+            Livre2 livre = new Livre2(newId, titre, auteur, editeur, exemplaires, genre);
+            // Vérification du genre en utilisant la méthode genreCorrect
+            if (!livre.genreCorrect(genre)) {
+                System.out.println("Genre non valide.");
+                return false;
+            }
             // Donne le nom du bus pour un livre
             livre.setNomBus(this.nom);
             // Ajouter le livre à la liste
@@ -91,11 +111,53 @@ public class Bibliobus2 {
         }
     }
     
-    // Méthode pour retirer un livre du catalogue par son ID
+    // Ajouter un disque en vérifiant s'il existe déjà un livre équivalent
+    public boolean ajoutDisque(String titre, String auteur, int exemplaires, Genre2 genre, List<Integer> pistes) {
+    	    	
+    	// boucle "for" pour parcourir le tableau et voir si un disque existe
+        for (Disque disqueExist : tabDisques) {
+        	// vérifie si le disque existe par rapport à l'auteur, au titre et à l'éditeur
+            if (disqueExist.getTitre().equalsIgnoreCase(titre)
+            		&& disqueExist.getAuteur().equalsIgnoreCase(auteur)) {
+            	// S'il existe, on incrémente le nombre d'exemplaires du livre existant et on diminue la capacité max
+            	disqueExist.nouvelExemplaire(exemplaires);
+            	nbDisques += exemplaires;
+            	capaciteMax -= exemplaires;
+            	return true; // Disque ajouté avec succès
+            }
+        }
+
+        // Aucun disque équivalent trouvé, vérifier s'il y a assez de place
+        if (exemplaires <= capaciteMax) {
+            // Créer un nouveau disque
+        	int newId = tabDisques.size();
+        	//List<Integer> pistes = new ArrayList<>();
+            Disque disque = new Disque(newId, titre, auteur, exemplaires, genre, pistes);
+            // Vérification du genre en utilisant la méthode genreCorrect
+            if (!disque.genreCorrect(genre)) {
+                System.out.println("Genre non valide.");
+                return false;
+            }
+            // Donne le nom du bus pour un disque
+            disque.setNomBus(this.nom);
+            // Ajouter le livre à la liste
+            tabDisques.add(disque);
+            // Incrémenter le nombre de disques par rapport aux exemplaires
+            nbDisques += exemplaires;
+            // Décrémenter la capacité max suivant le nombre d'exemplaires
+            capaciteMax -= exemplaires;
+            return true;
+        } else {
+            System.out.println("Capacité maximale atteinte, impossible d'ajouter un livre !\n");
+            return false;
+        }
+    }
+
+	// Méthode pour retirer un livre du catalogue par son ID
     public boolean retirerLivre(int id) {
         // Vérifier si l'indice est valide
         if (id >= 0 && id < tabLivres.size()) {
-            Livre supprLivre = tabLivres.get(id);
+            Livre2 supprLivre = tabLivres.get(id);
             nbLivres -= supprLivre.getExemplaires(); // Mettre à jour le nombre total de livres
             capaciteMax += supprLivre.getExemplaires(); // Mettre à jour la capacité max
             tabLivres.remove(id); // Supprimer le livre de la liste en utilisant l'indice
@@ -111,8 +173,16 @@ public class Bibliobus2 {
     public void afficheCatalogue() {
         System.out.println("Catalogue du bibliobus " + nom + " :\n");
         // boucle "for" pour afficher toutes les lignes du tableau
-        for (int i = 0; i < tabLivres.size(); i++) {
-            System.out.println(tabLivres.get(i).toString());
+        // Afficher les livres
+        System.out.println("Livres : \n");
+        for (Livre2 livre : tabLivres) {
+            System.out.println(livre.toString());
+        }
+        
+     // Afficher les disques
+        System.out.println("Disques : \n");
+        for (Disque disque : tabDisques) {
+            System.out.println(disque.toString());
         }
     }
 
@@ -129,7 +199,7 @@ public class Bibliobus2 {
 		return tabLivres.get(identifiant).getEditeur();
     }
     
-    public Genre getGenre(int identifiant) {
+    public Genre2 getGenre(int identifiant) {
 		return tabLivres.get(identifiant).getGenre();
     }
     
@@ -141,7 +211,7 @@ public class Bibliobus2 {
     	// on compare l'indice et on vérifie sa présence dans le tableau
     	if(identifiant < tabLivres.size()) {
     		// s'il existe on affiche ses caractéristiques
-    		Livre livre = tabLivres.get(identifiant);
+    		Livre2 livre = tabLivres.get(identifiant);
             System.out.println("Caractéristiques du livre (Identifiant " + identifiant + "):");
             System.out.println(livre.toString());
     	} else {
@@ -154,7 +224,7 @@ public class Bibliobus2 {
     	// total d'exemplaires de base à 0
     	int totalExemp = 0;
     	// boucle "for" pour parcourir le tableau de livres
-    	for(Livre livre : tabLivres) {
+    	for(Livre2 livre : tabLivres) {
     		// "ignore case" : pour ignorer la casse au moment de la saise du nom de l'auteur
     		// on va chercher le nom de l'auteur correspondant
     		if(livre.getAuteur().equalsIgnoreCase(auteur)) {
@@ -166,9 +236,9 @@ public class Bibliobus2 {
     }
     
     // Afficher les livres par genre
-    public void nbExempGenre(Genre genre) {
+    public void nbExempGenre(Genre2 genre) {
     	int totalExemp = 0;
-    	for(Livre livre : tabLivres) {
+    	for(Livre2 livre : tabLivres) {
     		// on va chercher le genre correspondant
     		if(livre.getGenre() == genre) {
     			totalExemp += livre.getExemplaires();
@@ -186,7 +256,7 @@ public class Bibliobus2 {
     	// Parcourir la liste des livres
     	for(int i = 0; i < tabLivres.size(); i++) {
     		// Créer une variable "livre" et lui attribuer la valeur de la position "i"
-    		Livre livre = tabLivres.get(i);
+    		Livre2 livre = tabLivres.get(i);
     		// Vérifier si le livre a l'auteur OU le genre correspondant
     		if(livre.getAuteur().equalsIgnoreCase(auteur) || livre.getGenre().equals(genre)) {
     			// Si oui, ajoutez l'indice de ce livre à la liste des indices
@@ -213,4 +283,6 @@ public class Bibliobus2 {
     	System.out.println("\nLe livre " + livre.getTitre() + " n'appartient pas au bus " + this.nom + ".");
     	return false;
     }
+
+
 }
