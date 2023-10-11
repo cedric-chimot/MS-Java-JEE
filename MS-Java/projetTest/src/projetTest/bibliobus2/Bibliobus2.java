@@ -3,9 +3,6 @@ package projetTest.bibliobus2;
 import java.util.ArrayList;
 import java.util.List;
 
-import projetTest.bibliobus.Genre;
-import projetTest.bibliobus.Livre;
-
 public class Bibliobus2 {
 	// Nom du bibliobus
     private String nom;
@@ -249,7 +246,7 @@ public class Bibliobus2 {
     }
     
     // Indice des livres par auteur
-    public ArrayList<Integer> indiceAutGr(String auteur, Genre genre) {
+    public ArrayList<Integer> indiceAutGr(String auteur, Genre2 genre) {
     	// Créer une liste pour stocker les indices des livres correspondants
     	ArrayList<Integer> tabIndices = new ArrayList<Integer>();
     	
@@ -275,7 +272,7 @@ public class Bibliobus2 {
     }
     
     // Livre appartenant à quel bus
-    public boolean appartientBus(Livre livre) {
+    public boolean appartientBus(Livre2 livre) {
     	if(this.nom.equals(livre.getNomBus())) {
     		System.out.println("\nLe livre " + livre.getTitre() + " appartient au bus " + livre.getNomBus() + ".");
     		return true;

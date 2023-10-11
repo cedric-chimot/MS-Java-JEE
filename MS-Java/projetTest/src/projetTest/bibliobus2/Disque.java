@@ -34,7 +34,7 @@ public class Disque extends Media {
 		this.nomBus = nomBus;
 	}
 
-	// vérifie si le livre n'existe pas dans la bibliothèque
+	// vérifie si le disque n'existe pas dans la bibliothèque
 	// sinon exemplaire = 1
 	public void nouvelExemplaire() {
 		if(exemplaires > 0) {
@@ -63,7 +63,7 @@ public class Disque extends Media {
 				+ exemplaires + "\nGenre : " + genre + "\nPistes : " + piste +  "\n";
 	}
 	
-	// un exemplaire du livre est dans la bibliothèque
+	// un exemplaire du disque est dans la bibliothèque
 	public boolean estPresent() {
 		if (exemplaires > 0) {
 			return true;
