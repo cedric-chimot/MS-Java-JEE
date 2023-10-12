@@ -145,7 +145,7 @@ public class Bibliobus2 {
             capaciteMax -= exemplaires;
             return true;
         } else {
-            System.out.println("Capacité maximale atteinte, impossible d'ajouter un livre !\n");
+            System.out.println("Capacité maximale atteinte, impossible d'ajouter un disque !\n");
             return false;
         }
     }

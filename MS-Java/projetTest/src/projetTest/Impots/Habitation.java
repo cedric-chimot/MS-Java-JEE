@@ -1,6 +1,6 @@
 package projetTest.Impots;
 
-public class Habitation {
+public class Habitation extends Commune {
 
 	// Définition des variables
 	protected String proprietaire;
@@ -24,5 +24,6 @@ public class Habitation {
 		System.out.println("Propriétaire : " + proprietaire + "\nAdresse : " + adresse+
 				"\nSurface : " + surface + "m²");
 	}
+	
 	
 }
