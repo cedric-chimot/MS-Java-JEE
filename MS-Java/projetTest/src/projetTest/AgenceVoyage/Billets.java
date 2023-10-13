@@ -1,17 +1,17 @@
 package projetTest.AgenceVoyage;
 
 public class Billets extends Voyage {
+	protected String typeBillet;
 	protected String depart;
 	protected String destination;
 	protected int distance;
 	protected int nbPlaces;
-	protected float reduction;
+	protected double reduction;
 	private int taxe;
-	private double prixTrain;
-	private double prixAvion;
 
-	public Billets(String nom, String prenom, String depart, String arrivee, int dist, int places, float reduc) {
+	public Billets(String nom, String prenom, String billet, String depart, String arrivee, int dist, int places, double reduc) {
 		super(nom, prenom);
+		this.typeBillet = billet;
 		this.depart = depart;
 		this.destination = arrivee;
 		this.distance = dist;
@@ -19,8 +19,9 @@ public class Billets extends Voyage {
 		this.reduction = reduc;
 	}
 	
-	public Billets(String nom, String prenom, String depart, String arrivee, int dist, int places, float reduc, int taxe) {
+	public Billets(String nom, String prenom, String billet,  String depart, String arrivee, int dist, int places, double reduc, int taxe) {
 		super(nom, prenom);
+		this.typeBillet = billet;
 		this.depart = depart;
 		this.destination = arrivee;
 		this.distance = dist;
@@ -29,16 +30,23 @@ public class Billets extends Voyage {
 		this.taxe = 20;
 	}
 	
-	public void prixTrain() {
-		prixTrain = (getDistance() * 0.10) * (1 - getReduction() * getNbPlaces());
+	// Calcul du prix des billets de train
+	public double prixTrain() {
+		return (this.distance * 0.10) * this.nbPlaces * (1 - this.reduction);
 	}
 
-	public void prixAvion() {
-		prixAvion = (getDistance() * 0.20 + taxe) * (1 - getReduction() * getNbPlaces());
+	// Calcul du prix des billets d'avion
+	public double prixAvion() {
+		return (this.distance * 0.20) * this.nbPlaces * (1 - this.reduction) + this.taxe;
 	}
 	
-	public void totalFacture(double facture) {
-		facture = prixTrain + prixAvion;
+	// Vérification du type de billet
+	public String getTypeBillet(boolean estAvion) {
+		if(estAvion) {
+			return "avion";
+		} else {
+			return "train";
+		}
 	}
 	
 	public String getDepart() {
@@ -57,7 +65,7 @@ public class Billets extends Voyage {
 		return nbPlaces;
 	}
 
-	public float getReduction() {
+	public double getReduction() {
 		return reduction;
 	}
 
@@ -65,12 +73,7 @@ public class Billets extends Voyage {
 		return taxe;
 	}
 
-	public double getPrixTrain() {
-		return prixTrain;
+	public String getTypeBillet() {
+		return typeBillet;
 	}
-
-	public double getPrixAvion() {
-		return prixAvion;
-	}
-
 }
