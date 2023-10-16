@@ -6,6 +6,7 @@ public class CamionBache extends Vehicule {
 		super(immat, 4, 20, charge);
 	}
 
+	// Condition pour la vitesse max
 	@Override
 	public int calculVitMax() {
 		if(charge == 0) {

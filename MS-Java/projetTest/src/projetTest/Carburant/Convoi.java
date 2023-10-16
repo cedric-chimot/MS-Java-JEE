@@ -7,9 +7,12 @@ public class Convoi {
 		this.vehicules = vehicules;
 	}
 	
+	// Affichage des données d'un convoi
 	public String toString() {
 		String description = "Convoi de véhicules :\n";
+		// On parcourt les véhicules
 		for(Vehicule vehicule : vehicules) {
+			// On ajoute la description de chaque véhicule du convoi
 			description += vehicule.toString();
 		}
 		return description;
@@ -30,6 +33,23 @@ public class Convoi {
 		}
 		// On retourne la vitesse max du convoi
 		return vitesseMax;
+	}
+	
+	// Calcul de la consommation totale par rapport à la vitesse maximale
+	public float calculConsoTotale() {
+		// Vitesse max obtenue en appelant la méthode "calculVitMax"
+		int vitesseMax = calculVitMax();
+		// Initialise la consommation à 0
+		float consoTotale = 0;
+		
+		// On parcourt les véhicule du convoi
+		for(Vehicule vehicule : vehicules) {
+			// On appelle la méthode "calculConso" dans la classe véhicule pour obtenir la consommation à la vitesse max du convoi
+			// On l'ajoute ensuite à la consommation totale
+			consoTotale += vehicule.calculConso(vitesseMax);
+		}
+		// On retourne la consommation totale
+		return consoTotale;
 	}
 
 }

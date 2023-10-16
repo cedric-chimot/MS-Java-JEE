@@ -2,7 +2,7 @@ package projetTest.Carburant;
 
 public class Citerne extends Vehicule {
 
-	public Citerne(String immat, float poidVide, float chargeMax, int charge) {
+	public Citerne(String immat, int charge) {
 		super(immat, 3, 10, charge);
 	}
 
