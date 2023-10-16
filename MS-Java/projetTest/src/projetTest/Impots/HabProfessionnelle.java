@@ -14,11 +14,15 @@ public class HabProfessionnelle extends Habitation {
 	}
 
 	public double impot() {
-		// Import de la méthode "impot" de la classe mère
-		double impotDepart = super.impot();
+		double impotSupp = 0.0;
 		// Calcul de la part supplémentaire par rapport aux employés
-		double impotSupp = (nbEmployes / 10) * 1000;
-		return impotDepart + impotSupp;
+		if(nbEmployes >= 10) {
+			int nb = nbEmployes / 10;
+			impotSupp = nb * 1000 + super.impot();
+		} else {
+			impotSupp = super.impot();
+		}
+		return impotSupp;
 	}
 	
 	public void affiche() {
