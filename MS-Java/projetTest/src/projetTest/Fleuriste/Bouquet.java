@@ -37,4 +37,13 @@ public class Bouquet {
 		}
 	}
 	
+	public int qteFleur(Fleur fleur) {
+		int qte = 0;
+		for(Fleur fleurBouquet : fleurs) {
+			if(fleurBouquet.equals(fleur)) {
+				qte++;
+			}
+		}
+		return qte;
+	}
 }
