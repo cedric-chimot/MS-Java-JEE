@@ -35,6 +35,19 @@ public class DémoFleuriste {
 		
 		// Générer la facture d'achat du bouquet
 		fleuriste1.facturation();
+		
+		// Création du bouquet
+		fleuriste1.creationBouquet("Chimot", "Cédric");
+				
+		// Ajouter des fleurs au bouquet
+		fleuriste1.ajoutFleur("Rose", 3);
+		fleuriste1.ajoutFleur("Violette", 1);
+		fleuriste1.ajoutFleur("Coquelicot", 4);
+		fleuriste1.ajoutFleur("Cactus", 2);
+				
+		// Générer la facture d'achat du bouquet
+		fleuriste1.facturation();
+		
 	}
 
 }

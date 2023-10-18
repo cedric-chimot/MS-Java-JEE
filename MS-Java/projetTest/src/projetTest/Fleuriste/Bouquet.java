@@ -19,10 +19,6 @@ public class Bouquet {
 		return fleurs;
 	}
 
-	public float getPrixTotal() {
-		return prixTotal;
-	}
-
 	public String getNomClient() {
 		return nomClient;
 	}
@@ -46,4 +42,12 @@ public class Bouquet {
 		}
 		return qte;
 	}
+	
+	public float calculPrixTotal() {
+		for(Fleur fleur : fleurs) {
+			prixTotal += fleur.getPrixUnit();
+		}
+		return prixTotal;
+	}
+	
 }

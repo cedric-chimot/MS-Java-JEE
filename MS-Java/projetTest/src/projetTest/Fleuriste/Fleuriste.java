@@ -73,41 +73,29 @@ public class Fleuriste implements InterfaceFleuriste {
 	        Bouquet bouquet = bouquetEnCours;
 	        System.out.println("Facture du bouquet pour le client : " + bouquet.getNomClient() +
 	                            " " + bouquet.getPrenomClient());
-	        System.out.println("-----------------------------------------------------------------");
+	        System.out.println("-----------------------------------------------------------------------");
+	        
+	        // Initialise une liste pour enregistrer les fleurs déjà facturées
+	        List<String> fleursFacturees = new ArrayList<>(); 
+	        
+	        for(Fleur fleur : bouquet.getFleurs()) {
+	        	String nomFleur = fleur.getNomFleur();
+	        	// Vérifie si le nom de la fleur a déjà été facturé (pour éviter les doublons)
+	        	if(!fleursFacturees.contains(nomFleur)) {
+	        		float prixUnit = prixDUneFleur(nomFleur);
+		            int quantite = bouquet.qteFleur(fleur);
+		            float prixTotalFleur = prixUnit * quantite;
 
-	        float prixTotalBouquet = 0;
-	        List<String> fleursFacturees = new ArrayList<>();
-
-	        // On parcourt chaque fleur du bouquet en cours
-	        for (Fleur fleur : bouquet.getFleurs()) {
-	            String nomFleur = fleur.getNomFleur();
-	            
-	            // On vérifie si la fleur a déjà été comptabilisée (éviter la répétition)
-	            if (!fleursFacturees.contains(nomFleur)) {
-	                int quantite = 0;
-	                // On compte la quantité de cette fleur dans le bouquet
-	                for (Fleur fleurDuBouquet : bouquet.getFleurs()) {
-	                    if (fleurDuBouquet.getNomFleur().equals(nomFleur)) {
-	                        quantite++;
-	                    }
-	                }
-
-	                // On obtient le prix unitaire de la fleur
-	                float prixUnit = prixDUneFleur(nomFleur);
-	                // Calcul du prix total de la fleur dans le bouquet
-	                float prixTotalFleur = prixUnit * quantite;
-
-	                System.out.println(nomFleur + " - Quantité : " + quantite + " - Prix Total : " + prixTotalFleur + "€");
-	                // Ajout du nom de la fleur à la liste des fleurs facturées
+	                System.out.println("Fleur : " + nomFleur + " - Prix unitaire : " + prixUnit +
+	                		" - Quantité : " + quantite + " - Prix Total : " + prixTotalFleur + "€");
+	                
+	                // Ajoute le nom de la fleur à la liste des fleurs facturées
 	                fleursFacturees.add(nomFleur);
-
-	                // On met à jour le total du bouquet
-	                prixTotalBouquet += prixTotalFleur;
-	            }
-	        }
-
-	        System.out.println("-----------------------------------------------------------------");
-	        System.out.println("Prix total du bouquet : " + prixTotalBouquet + "€");
+	        	}
+            }
+	        
+	        System.out.println("-----------------------------------------------------------------------");
+	        System.out.println("Prix total du bouquet : " + bouquet.calculPrixTotal() + "€\n");
 	    } else {
 	        System.out.println("Aucun bouquet en cours");
 	    }
