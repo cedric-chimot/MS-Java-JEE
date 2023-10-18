@@ -1,7 +1,6 @@
 package projetTest.Fleuriste;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class Fleuriste implements InterfaceFleuriste {
 	private List<Fleur> stock;
@@ -75,24 +74,33 @@ public class Fleuriste implements InterfaceFleuriste {
 	                            " " + bouquet.getPrenomClient());
 	        System.out.println("-----------------------------------------------------------------------");
 	        
-	        // Initialise une liste pour enregistrer les fleurs déjà facturées
-	        List<String> fleursFacturees = new ArrayList<>(); 
-	        
-	        for(Fleur fleur : bouquet.getFleurs()) {
-	        	String nomFleur = fleur.getNomFleur();
-	        	// Vérifie si le nom de la fleur a déjà été facturé (pour éviter les doublons)
-	        	if(!fleursFacturees.contains(nomFleur)) {
-	        		float prixUnit = prixDUneFleur(nomFleur);
-		            int quantite = bouquet.qteFleur(fleur);
-		            float prixTotalFleur = prixUnit * quantite;
+	        // Initialise une map pour enregistrer le nom des fleurs
+	        Map<String, Integer> fleursFacturees = new HashMap<>();
+
+	        // On parcourt les fleurs dans le bouquet
+	        for (Fleur fleur : bouquet.getFleurs()) {
+	            String nomFleur = fleur.getNomFleur();
+	            
+	            // On vérifie si la fleur a déjà été facturée
+	            if (fleursFacturees.containsKey(nomFleur)) {
+	            	// On récupère la quantité déjà facturée
+	                int quantite = fleursFacturees.get(nomFleur);
+	                // Incrémente la quantité de cette fleur
+	                quantite++;
+	                // Met à jour la quantité dans la map
+	                fleursFacturees.put(nomFleur, quantite);
+	            } else { // Si la fleur n'a pas encore été facturée
+	                fleursFacturees.put(nomFleur, 1); // Ajoute la fleur à la liste des fleurs facturées
+
+	                // On récupère les différents attributs
+	                float prixUnit = prixDUneFleur(nomFleur);
+	                int quantite = bouquet.qteFleur(fleur);
+	                float prixTotalFleur = prixUnit * quantite;
 
 	                System.out.println("Fleur : " + nomFleur + " - Prix unitaire : " + prixUnit +
-	                		" - Quantité : " + quantite + " - Prix Total : " + prixTotalFleur + "€");
-	                
-	                // Ajoute le nom de la fleur à la liste des fleurs facturées
-	                fleursFacturees.add(nomFleur);
-	        	}
-            }
+	                        " - Quantité : " + quantite + " - Prix Total : " + prixTotalFleur + "€");
+	            }
+	        }
 	        
 	        System.out.println("-----------------------------------------------------------------------");
 	        System.out.println("Prix total du bouquet : " + bouquet.calculPrixTotal() + "€\n");
@@ -100,6 +108,5 @@ public class Fleuriste implements InterfaceFleuriste {
 	        System.out.println("Aucun bouquet en cours");
 	    }
 	}
-
 
 }
