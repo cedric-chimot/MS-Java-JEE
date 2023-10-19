@@ -11,22 +11,29 @@ public class Fleuriste implements InterfaceFleuriste {
 		this.bouquetEnCours = null;
 	}
 	
+	// Nouveau bouquet
 	public void creationBouquet(String nom, String prenom) {
 		bouquetEnCours = new Bouquet(nom, prenom);
 	}
 
+	// Vérification de la quantité en stock
 	public int quantiteEnStock(String nomFleur) {
 		for(Fleur fleur : stock) {
+			// On voit par rapport au nom de la fleur
 			if(fleur.getNomFleur().equals(nomFleur)) {
+				// Si la fleur existe on retourne la quantité
 				return fleur.getQuantite();
 			}
 		}
 		return 0;
 	}
 
+	// Appel du prix unitaire d'une fleur
 	public float prixDUneFleur(String nomFleur) {
 		for(Fleur fleur : stock) {
+			// On voit par rapport au nom de la fleur
 			if(fleur.getNomFleur().equals(nomFleur)) {
+				// Si la fleur existe on retourne le prix unitaire
 				return fleur.getPrixUnit();
 			}
 		}
@@ -46,7 +53,7 @@ public class Fleuriste implements InterfaceFleuriste {
 						// Si non on affiche une erreur
 						System.out.println("Stock insuffisant pour cette fleur !");
 					} else {
-						// Si oui on ajoute la fleur au bouquet et on réduit le stock e la fleur en question
+						// Si oui on ajoute la fleur au bouquet et on réduit le stock de la fleur en question
 						bouquetEnCours.ajouterFleur(fleur, qte);
 						reduireStock(nomFleur, qte);
 					}
