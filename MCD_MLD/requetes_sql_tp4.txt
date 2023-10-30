@@ -102,5 +102,38 @@ INNER JOIN joue j ON f.id = j.idFilm
 INNER JOIN personne p ON r.idRealisateur = p.id
 WHERE p.id = j.idActeur;
 
+question 13 : 
+
+SELECT DISTINCT f.annee
+FROM film f
+INNER JOIN joue j ON f.id = j.idFilm
+INNER JOIN personne p ON j.idActeur = p.id
+WHERE p.nom = 'Dujardin' AND p.prenom = 'Jean'
+ORDER BY f.annee;
+
+
+question 14 :
+
+SELECT DISTINCT salaire
+FROM joue
+WHERE idActeur = (
+	SELECT id
+    FROM personne
+    WHERE nom = 'Dujardin' AND prenom = 'Jean'
+)
+ORDER BY salaire DESC;
+
+
+question 15 : 
+
+SELECT nom, prenom
+FROM personne 
+WHERE nom IN (
+	SELECT nom 
+    FROM personne
+    GROUP BY nom
+    HAVING COUNT(DISTINCT prenom) > 1
+)
+ORDER BY nom, prenom;
 
 
