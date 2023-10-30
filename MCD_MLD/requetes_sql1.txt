@@ -1,0 +1,108 @@
+TP3
+
+Exercice 1 : 
+
+question 1 : 
+
+SELECT numLivre, titre
+FROM livre
+WHERE nbPages > (
+  SELECT AVG(nbPages)
+  FROM livre
+);
+
+
+question 2 : 
+
+SELECT numLivre
+FROM ecrit
+WHERE numAut IN (
+  SELECT numAUt
+  FROM auteur
+  WHERE prenom = 'Chester'
+);
+
+
+question 3 :
+
+SELECT numAut
+FROM ecrit
+WHERE numLivre NOT IN (
+  SELECT numLivre
+  FROM ecrit
+  WHERE numLivre = 2
+);
+
+
+question 4 :
+
+SELECT numEdit, nom
+FROM editeur
+WHERE numEdit NOT IN (
+  SELECT DISTINCT numEdit
+  FROM edite
+);
+
+
+question 5 : 
+
+SELECT numAut, nom
+FROM auteur
+WHERE nom LIKE 'C%' AND numAut NOT IN (
+  SELECT DISTINCT numAut
+  FROM ecrit
+);
+
+
+question 6 :
+
+SELECT numLivre, titre
+FROM livre
+WHERE EXISTS (
+  SELECT 1
+  FROM edite
+  WHERE edite.numEdit = livre.numLivre
+)
+AND numLivre NOT IN (
+  SELECT DISTINCT numLivre
+  FROM ecrit
+  WHERE ecrit.numAut = 4
+);
+
+
+question 7 :
+
+SELECT numAut
+FROM ecrit
+GROUP BY numAut
+HAVING COUNT(numLivre) = (
+  SELECT MAX(ecrits)
+  FROM (SELECT numAut, COUNT(numLivre) AS ecrits FROM ecrit GROUP BY numAut) AS maxLivres
+)
+
+
+Exercice 2 :
+
+question 1 : 
+
+SELECT a.numAut
+FROM auteur a
+LEFT JOIN ecrit e on a.numAut = e.numAut
+LEFT JOIN livre l on e.numLivre = l.numLivre AND anneeImpression = 2003
+WHERE l.numLivre IS null
+GROUP BY a.numAut;
+
+
+question 2 :
+
+SELECT l.numLivre, l.titre
+FROM livre l
+JOIN edite ed on l.numLivre = ed.numLivre
+LEFT JOIN ecrit e on l.numLivre = e.numLivre
+LEFT JOIN auteur a on e.numAut = a.numAut
+WHERE ed.numEdit = (
+	SELECT numEdit
+    FROM editeur
+    WHERE nom = 'Gallimard'
+    and (a.nom IS null OR a.nom != 'Himes')
+);

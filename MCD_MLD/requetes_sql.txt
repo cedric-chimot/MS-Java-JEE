@@ -1,0 +1,118 @@
+EXERCICES TP2 :
+
+Exercice 1 :
+
+question 1 : select count(numLivre) as nbLivres, anneeImpression FROM livre GROUP BY anneeImpression;
+
+question 2 : select min(nbPages) as minPages, max(nbPages) as maxPages, anneeImpression from livre GROUP BY anneeImpression;
+
+question 3 : select avg(nbPages) as moyPages, anneeImpression from livre where anneeImpression > 2000 GROUP BY anneeImpression;
+
+question 4 : select count(numLivre) as nbLivres, numAut from ecrit GROUP by numAut;
+
+question 5 : select count(numEdit) as nbEditeurs, ville from editeur GROUP by ville;
+
+question 6 : select count(numLivre) as nbLivres, numEdit from edite GROUP by numEdit;
+
+
+Exercice 2 : 
+
+question 1 : 
+
+select COUNT(livre.numLivre) AS nbLivres, livre.anneeImpression, ecrit.numAut
+FROM livre
+INNER JOIN ecrit
+ON livre.numLivre = ecrit.numLivre
+WHERE numAut = 2;
+
+
+question 2 :
+
+select COUNT(livre.numLivre) AS nbLivres, livre.anneeImpression, ecrit.numAut, auteur.nom
+FROM livre
+INNER JOIN ecrit ON livre.numLivre = ecrit.numLivre
+INNER JOIN auteur ON auteur.numAut = ecrit.numAut
+WHERE nom = 'Himes';
+
+
+question 3 : 
+
+select COUNT(livre.numLivre) AS nbLivres, livre.anneeImpression, ecrit.numAut, auteur.nom
+FROM livre
+INNER JOIN ecrit ON livre.numLivre = ecrit.numLivre
+INNER JOIN auteur ON auteur.numAut = ecrit.numAut
+WHERE anneeImpression > 2000 AND nom = 'Himes'
+GROUP BY anneeImpression;
+
+
+question 4 : 
+
+select COUNT(livre.numLivre) AS nbLivres, editeur.nom, editeur.ville
+FROM livre
+INNER JOIN edite ON livre.numLivre = edite.numLivre
+INNER JOIN editeur ON editeur.numEdit = edite.numEdit
+GROUP BY ville;
+
+
+Exercice 3 :
+
+question 1 :
+
+avec opérateurs : 
+
+SELECT numLivre
+FROM livre
+WHERE nbPages > 300
+AND numLivre IN (
+  SELECT numLivre
+  FROM livre
+  WHERE anneeImpression < 2003
+);
+
+sans opérateur :
+
+select numLivre
+FROM livre
+WHERE nbPages > 300 AND anneeImpression < 2003;
+
+
+question 2 :
+
+avec opérateurs :
+
+select numLivre
+FROM livre
+WHERE nbPages > 300
+UNION
+SELECT numLivre
+FROM livre
+WHERE anneeImpression < 2003;
+
+sans opérateurs :
+
+select numLivre
+FROM livre
+WHERE nbPages > 300 OR anneeImpression < 2003;
+
+
+question 3 :
+
+avec opérateurs :
+
+SELECT numLivre
+FROM livre
+WHERE nbPages > 300
+AND numLivre NOT IN (
+  SELECT numLivre
+  FROM livre
+  WHERE anneeImpression < 2003
+);
+
+sans opérateurs :
+
+select numLivre
+FROM livre
+WHERE nbPages > 300 AND anneeImpression >= 2003;
+
+
+
