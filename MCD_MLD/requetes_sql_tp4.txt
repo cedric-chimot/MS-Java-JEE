@@ -1,0 +1,106 @@
+Exercices TP4 :
+
+question 1 : SELECT * FROM `personne` ORDER BY nom ASC, naissance ASC;
+
+question 2 : 
+
+SELECT f.titre, g.type
+FROM film f
+INNER JOIN genre g 
+ON f.idGenre = g.id
+ORDER BY f.annee ASC;
+
+
+question 3 : 
+
+SELECT f.titre, g.type
+FROM film f
+INNER JOIN genre g 
+ON f.idGenre = g.id
+WHERE g.type = 'thriller';
+
+
+question 4 : 
+
+select f.idGenre, g.type
+FROM film f 
+INNER JOIN genre g ON f.idGenre = g.id
+INNER JOIN realisateur r ON f.idRealisateur = r.idRealisateur
+WHERE nomR = 'Scorcese';
+
+
+question 5 : 
+
+SELECT p.nom, f.titre
+FROM personne p
+INNER JOIN joue j ON p.id = j.idActeur
+INNER JOIN film f ON f.id = j.idFilm
+WHERE f.titre = 'Le convoyeur'
+ORDER BY p.nom ASC;
+
+
+question 6 :
+
+SELECT DISTINCT p.nom, p.prenom
+FROM personne p
+INNER JOIN joue j ON p.id = j.idActeur
+INNER JOIN film f ON j.idFilm= f.id
+INNER JOIN genre g ON f.idGenre = g.id
+WHERE g.type = 'comédie';
+
+
+question 7 : 
+
+SELECT DISTINCT g.type
+FROM personne p
+INNER JOIN joue j ON p.id = j.idActeur
+INNER JOIN film f ON j.idFilm = f.id
+INNER JOIN genre g ON f.idGenre = g.id
+WHERE p.nom = 'Di Caprio' AND p.prenom = 'Leonardo';
+
+
+question 8 : 
+
+SELECT p.* 
+FROM personne p
+ORDER BY naissance ASC
+
+
+question 9 : 
+
+SELECT f.titre
+FROM film f
+INNER JOIN realisateur r ON f.idRealisateur = r.idRealisateur
+WHERE f.nbSpectateurs > 1000000 AND r.nomR = 'Pecas';
+
+
+question 10 : 
+
+SELECT f.titre FROM film f WHERE f.nbSpectateurs < 100000;
+
+
+question 11 : 
+
+SELECT f.titre
+FROM film f
+INNER JOIN realisateur r ON f.idRealisateur = r.idRealisateur
+WHERE r.nomR = 'Canet'
+AND f.id IN (
+    SELECT j.idFilm
+    FROM joue j
+    INNER JOIN personne p ON j.idActeur = p.id
+    WHERE p.nom = 'Cotillard'
+);
+
+
+question 12 :
+
+SELECT f.titre
+FROM film f
+INNER JOIN realisateur r ON f.idRealisateur = r.idRealisateur
+INNER JOIN joue j ON f.id = j.idFilm
+INNER JOIN personne p ON r.idRealisateur = p.id
+WHERE p.id = j.idActeur;
+
+
+
