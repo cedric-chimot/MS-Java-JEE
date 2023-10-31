@@ -1,0 +1,101 @@
+TP6
+
+Exercices (ville_fr) : 
+
+question 1 :
+
+SELECT ville_nom AS nomVille, ville_population_2012 AS population2012
+FROM villes_france_free
+ORDER BY ville_population_2012 DESC
+LIMIT 10;
+            -------------------
+
+question 2 :
+
+SELECT ville_nom AS nomVille, ville_surface AS superficie
+FROM villes_france_free
+ORDER BY ville_surface ASC
+LIMIT 50;
+            -------------------
+
+question 3 :
+
+SELECT * FROM villes_france_free
+WHERE ville_departement LIKE '97%';
+            -------------------
+
+question 4 : 
+
+SELECT v.ville_departement AS departement, v.ville_population_2012 AS popu2012, d.departement_nom AS nomDepart
+FROM villes_france_free v
+INNER JOIN departement d ON v.ville_departement = d.departement_code
+ORDER BY popu2012 DESC
+LIMIT 10;
+            -------------------
+
+question 5 :
+
+SELECT d.departement_nom AS nom_departement, d.departement_code AS code_departement, COUNT(v.ville_id) AS nombre_de_communes
+FROM departement d
+LEFT JOIN villes_france_free v ON d.departement_code = v.ville_departement
+GROUP BY d.departement_nom, d.departement_code
+ORDER BY nombre_de_communes DESC;
+            -------------------
+
+question 6 : 
+
+SELECT d.departement_nom AS nomDepart, d.departement_code AS codeDepart, COUNT(v.ville_surface) AS superficie
+FROM departement d
+INNER JOIN villes_france_free v ON d.departement_code = v.ville_departement
+GROUP by codeDepart, nomDepart
+ORDER BY superficie DESC
+LIMIT 10;
+            -------------------
+
+question 7 :
+
+SELECT COUNT(*) AS nbVilles FROM villes_france_free
+WHERE ville_nom LIKE 'SAINT%';
+            -------------------
+
+question 8 :
+
+SELECT v.ville_nom, COUNT(ville_nom) AS nbVilles 
+FROM villes_france_free v 
+GROUP BY ville_nom
+HAVING COUNT(ville_nom) > 1
+ORDER BY nbVilles DESC;
+            -------------------
+
+question 9 :
+
+SELECT ville_nom, ville_surface
+FROM villes_france_free 
+WHERE ville_surface > (
+    SELECT AVG(ville_surface)
+    FROM villes_france_free
+);
+            -------------------
+
+question 10 :
+
+SELECT d.departement_nom AS nomDepart, d.departement_code AS codeDepart
+FROM departement d
+WHERE EXISTS (
+    SELECT 1
+    FROM villes_france_free v
+    WHERE v.ville_departement = d.departement_code
+    GROUP BY v.ville_departement
+    HAVING SUM(v.ville_population_2012) > 2000000
+);
+            -------------------
+
+question 11 :
+
+UPDATE `villes_france_free`
+SET ville_nom = REPLACE (ville_nom, '-','')
+WHERE ville_nom LIKE 'SAINT-%';
+
+
+----------------------------------------------------------------------------------------
+Exercice 2 :

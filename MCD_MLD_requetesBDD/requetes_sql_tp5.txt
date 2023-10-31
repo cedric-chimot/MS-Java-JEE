@@ -205,8 +205,14 @@ question 3 :
 
 SELECT f.titre, COUNT(*) AS nbRemake
 FROM film f
+WHERE f.titre IN (
+    SELECT titre
+    FROM film
+    GROUP BY titre
+    HAVING COUNT(*) > 1
+)
 GROUP BY f.titre
-HAVING COUNT(*) > 1;
+HAVING COUNT(DISTINCT f.annee) > 1;
             -------------------
 
 question 4 :
