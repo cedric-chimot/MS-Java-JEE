@@ -1,0 +1,346 @@
+TP5
+----------------------------------------------------------------------------------------
+
+Exercice 1 :
+
+question 1 : SELECT count(*) AS nbFilms from film;
+            -------------------
+
+question 2 : SELECT MIN(annee) AS plusAncien, MAX(annee) AS plusRecent from film;
+            -------------------
+
+question 3 : 
+
+SELECT MIN(f.annee) AS anneeFR
+FROM film f
+INNER JOIN realisateur r 
+ON f.idRealisateur = r.idRealisateur
+WHERE r.paysR = 'FR';
+            -------------------
+
+question 4 : 
+
+SELECT count(*) AS nbFilms
+FROM film f
+INNER JOIN realisateur r 
+ON f.idRealisateur = r.idRealisateur
+WHERE r.nomR = 'Pecas' AND f.annee > 1980;
+            -------------------
+
+question 5 :
+
+SELECT count(*) AS nbGenres FROM genre;
+            -------------------
+
+question 6 : 
+
+SELECT MAX(salaire) AS salaireMax, MIN(salaire) AS salaireMini, AVG(salaire) AS salaireMoyen
+FROM joue;
+            -------------------
+
+question 7 :
+
+SELECT COUNT(*) AS realAmericain
+FROM film f
+INNER JOIN realisateur r  
+ON f.idRealisateur = r.idRealisateur
+WHERE r.paysR = 'USA';
+            -------------------
+
+question 8 : 
+
+SELECT MAX(f.nbSpectateurs) AS spectateurMax, MIN(f.nbSpectateurs) AS spectateurMin, AVG(f.nbSpectateurs) AS spectateurMoyen
+FROM film f
+INNER JOIN genre g 
+ON f.idGenre = g.id
+WHERE g.type = 'comédie';
+            -------------------
+
+question 9 :
+
+SELECT SUM(f.nbSpectateurs * 8) AS recetteTotale
+FROM film f
+INNER JOIN realisateur r ON f.idRealisateur = r.idRealisateur
+WHERE r.paysR = 'FR' AND f.annee = 2010;
+
+
+SELECT SUM(recetteTotale) AS recetteTotale
+FROM (
+    SELECT f.nbSpectateurs * 8 AS recetteTotale
+    FROM film f 
+	INNER JOIN realisateur r ON f.idRealisateur = r.idRealisateur
+	WHERE r.paysR = 'FR' AND f.annee = 2010
+) AS recette_fr_2010;
+            -------------------
+
+question 10 : 
+
+SELECT AVG(f.nbSpectateurs) AS moySpect, MAX(f.nbSpectateurs) AS maxSpect
+FROM film f 
+INNER JOIN realisateur r ON f.idRealisateur = r.idRealisateur
+WHERE r.nomR = 'Scorcese';
+
+----------------------------------------------------------------------------------------
+Exercice 2 :
+
+question 1 :
+
+SELECT pays, COUNT(*) as nbActeurs
+FROM (
+    SELECT DISTINCT p.pays AS pays, p.id
+    FROM personne p
+) AS acteur_pays
+GROUP BY pays
+ORDER BY nbActeurs DESC;
+            -------------------
+
+question 2 : 
+
+SELECT g.type AS genre, COUNT(*) AS nbFilms
+FROM genre g
+LEFT JOIN film f ON g.id = f.idGenre
+GROUP BY g.type
+ORDER BY nbFilms DESC;
+            -------------------
+
+question 3 :
+
+SELECT r.nomR AS realisateur, AVG(f.nbSpectateurs) AS moySpect, MAX(f.nbSpectateurs) AS maxSpect
+FROM realisateur r
+LEFT JOIN film f ON r.idRealisateur = f.idRealisateur
+GROUP BY r.nomR
+ORDER BY realisateur;
+            -------------------
+
+question 4 : 
+
+SELECT p.nom, p.prenom, AVG(j.salaire) AS salaireMoyen
+FROM personne p
+LEFT JOIN joue j ON j.idActeur = p.id
+GROUP BY p.id
+HAVING salaireMoyen > 400000
+ORDER BY salaireMoyen DESC;
+            -------------------
+
+question 5 :
+
+SELECT p.nom, p.prenom, COUNT(j.idFilm) AS nbFilms
+FROM personne p
+LEFT JOIN joue j ON j.idActeur = p.id
+GROUP BY p.id
+ORDER BY nbFilms DESC;
+            -------------------
+
+question 6 :
+
+SELECT r.nomR, r.prenomR, COUNT(f.id) AS nbFilms
+FROM realisateur r
+LEFT JOIN film f ON r.idRealisateur = f.idRealisateur
+WHERE r.paysR = 'GB'
+GROUP BY r.nomR
+ORDER BY nbFilms DESC;
+            -------------------
+
+question 7 :
+
+SELECT p.nom, p.prenom
+FROM personne p
+INNER JOIN joue j ON p.id = j.idActeur
+INNER JOIN film f ON j.idActeur = f.id
+INNER JOIN genre g ON f.idGenre = g.id
+WHERE g.type = 'comédie'
+GROUP BY p.id
+HAVING COUNT(*) > 2;
+            -------------------
+
+question 8 :
+
+SELECT p.nom, p.prenom, AVG(j.salaire) AS salaireMoyen
+FROM personne p
+INNER JOIN joue j ON p.id = j.idActeur
+INNER JOIN film f ON j.idActeur = f.id
+INNER JOIN genre g ON f.idGenre = g.id
+WHERE g.type = 'policier'
+GROUP BY p.id, p.nom, p.prenom
+HAVING salaireMoyen > 300000
+ORDER BY p.nom, p.prenom;
+            -------------------
+
+question 9 :
+
+SELECT r.nomR AS realisateur, g.type AS genre, AVG(f.nbSpectateurs) AS moySpect
+FROM film f
+INNER JOIN realisateur r ON f.idRealisateur = r.idRealisateur
+INNER JOIN genre g ON f.idGenre = g.id
+GROUP BY r.nomR, g.type
+ORDER BY realisateur, genre;
+
+
+----------------------------------------------------------------------------------------
+Exercice 3 :
+
+question 1 : 
+
+SELECT r.nomR AS realisateur, COUNT(f.id) as nbFilms, SUM(f.nbSpectateurs * 8) AS chifAffaire
+FROM film f
+INNER JOIN realisateur r ON f.idRealisateur = r.idRealisateur
+GROUP BY r.nomR
+HAVING chifAffaire < 1000000 AND nbFilms < 3
+ORDER BY chifAffaire;
+            -------------------
+
+question 2 :
+
+SELECT p.nom, p.prenom, r.nomR AS realisateur, COUNT(*) as nbCollab
+FROM personne p
+INNER JOIN joue j ON p.id = j.idActeur
+INNER JOIN film f ON j.idFilm = f.id
+INNER JOIN realisateur r ON f.idRealisateur = r.idRealisateur
+GROUP BY p.id, r.idRealisateur
+HAVING nbCollab > 2
+ORDER BY p.nom, p.prenom, r.nomR;
+            -------------------
+
+question 3 :
+
+SELECT f.titre, COUNT(*) AS nbRemake
+FROM film f
+GROUP BY f.titre
+HAVING COUNT(*) > 1;
+            -------------------
+
+question 4 :
+
+SELECT p.nom, p.prenom, COUNT(j.idFilm) AS nbFilms
+FROM personne p
+INNER JOIN joue j ON p.id = j.idActeur
+WHERE (YEAR(CURRENT_DATE()) - YEAR(p.naissance)) < 45
+GROUP BY p.nom, p.prenom, p.id
+ORDER BY p.nom, p.prenom;
+            -------------------
+
+question 5 :
+
+SELECT (YEAR(CURRENT_DATE()) - YEAR(p.naissance)) as age, COUNT(*) AS nbPersonnes
+FROM personne p
+GROUP BY age
+ORDER BY age;
+            -------------------
+
+question 6 :
+
+SELECT (YEAR(CURDATE()) - MIN(f.annee)) AS plus_vieux_film
+FROM film f;
+            -------------------
+
+question 7 :
+
+SELECT f.titre
+FROM film f
+INNER JOIN joue j on f.id = j.idFilm
+GROUP BY f.titre
+HAVING COUNT(j.idActeur) = 1;
+            -------------------
+
+question 8 :
+
+SELECT r.nomR, r.prenomR, COUNT(f.id) AS nbFilms
+FROM realisateur r
+INNER JOIN film f on r.idRealisateur = f.idRealisateur
+GROUP BY r.idRealisateur, r.nomR, r.prenomR
+HAVING SUM(f.nbSpectateurs) >= 1000000;
+            -------------------
+
+question 9 : 
+
+SELECT f.titre, SUM(f.nbSpectateurs) AS totalSpect
+FROM film f
+GROUP BY f.titre
+ORDER BY totalSpect DESC
+LIMIT 10;
+            -------------------
+
+question 10 :
+
+SELECT p1.nom, p1.prenom, p2.nom, p2.prenom, YEAR(p1.naissance) AS dateNaiss
+FROM personne p1
+INNER JOIN personne p2 ON YEAR(p1.naissance) = YEAR(p2.naissance) AND p1.id < p2.id
+ORDER BY dateNaiss DESC, p1.nom, p1.prenom, p2.nom, p2.prenom;
+
+
+autre possibilité :
+
+SELECT p1.nom, p1.prenom, YEAR(p1.naissance) AS annee_naissance
+FROM personne p1
+WHERE (SELECT COUNT(*) FROM personne p2 WHERE YEAR(p2.naissance) = YEAR(p1.naissance) AND p2.id != p1.id) > 0
+
+UNION
+
+SELECT p2.nom, p2.prenom, YEAR(p2.naissance) AS annee_naissance
+FROM personne p2
+WHERE (SELECT COUNT(*) FROM personne p1 WHERE YEAR(p1.naissance) = YEAR(p2.naissance) AND p1.id != p2.id) > 0
+ORDER BY annee_naissance, nom, prenom;
+            -------------------
+
+question 11 : 
+
+SELECT f.titre
+FROM film f
+WHERE f.idRealisateur IS null;
+            -------------------
+
+question 12 :
+
+SELECT r.idRealisateur, r.nomR, r.prenomR
+FROM realisateur r
+INNER JOIN film f ON r.idRealisateur = f.idRealisateur
+GROUP BY r.idRealisateur, r.nomR, r.prenomR
+HAVING COUNT(DISTINCT f.idGenre) >= 2;
+            -------------------
+
+question 13 :
+
+SELECT r.idRealisateur, r.nomR, r.prenomR
+FROM realisateur r
+INNER JOIN film f ON r.idRealisateur = f.idRealisateur
+WHERE (f.annee - r.naissance) = 40;
+            -------------------
+
+question 14 :
+
+SELECT MIN(f.annee - r.naissance) AS ageJeuneReal
+FROM realisateur r
+INNER JOIN film f ON r.idRealisateur = f.idRealisateur;
+            -------------------
+
+question 15 :
+
+SELECT g.type AS typeFilm, MIN(YEAR(CURRENT_DATE()) - f.annee) AS ageFilm
+FROM genre g
+INNER JOIN film f ON g.id = f.idGenre
+GROUP BY g.type;
+            -------------------
+
+question 16 :
+
+SELECT SUM(f.nbSpectateurs) AS nbSpect
+FROM film f
+WHERE f.idRealisateur = (
+    SELECT r.idRealisateur
+    FROM realisateur r
+    WHERE r.nomR = 'Dujardin' and r.prenomR = 'Jean'
+)
+or f.id IN (
+    SELECT j.idFilm
+    FROM joue j
+	INNER JOIN personne p ON j.idActeur = p.id
+	WHERE p.nom = 'Dujardin' AND p.prenom = 'Jean'
+);
+
+
+
+
+
+
+
+
