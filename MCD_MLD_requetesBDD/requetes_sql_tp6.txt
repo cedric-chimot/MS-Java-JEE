@@ -99,3 +99,139 @@ WHERE ville_nom LIKE 'SAINT-%';
 
 ----------------------------------------------------------------------------------------
 Exercice 2 :
+
+question 1 :
+
+SELECT * FROM client
+WHERE prenom = 'Muriel'
+AND password = SHA1('test11');
+            -------------------
+
+question 2 :
+
+SELECT cl.nom, COUNT(*) AS nbCommandes
+FROM commande_ligne cl
+GROUP BY cl.nom
+HAVING COUNT(*) > 1;
+            -------------------
+
+question 3 :
+
+SELECT cl.nom AS produit, COUNT(cl.commande_id) AS nbCommandes, GROUP_CONCAT(cl.commande_id) comAssoc
+FROM commande_ligne cl
+GROUP BY cl.nom
+HAVING COUNT(cl.commande_id) > 1;
+            -------------------
+
+question 4 :
+
+UPDATE commande_ligne
+SET prix_total = quantite * prix_unitaire;
+            -------------------
+
+question 5 :
+
+SELECT c.id AS idCommande, c.date_achat AS dateCommande, cl.prenom AS prenomClient, cl.nom AS nomClient, SUM(cln.prix_total) AS montantTotal
+FROM commande c 
+JOIN client cl ON c.client_id = cl.id
+JOIN commande_ligne cln on c.id = cln.commande_id
+GROUP BY c.id, c.date_achat, cl.prenom, cl.nom
+ORDER BY c.id;
+            -------------------
+
+question 6 :
+
+UPDATE commande AS c 
+JOIN (
+    SELECT commande_id, SUM(prix_total) AS montantTotal
+    FROM commande_ligne
+    GROUP BY commande_id
+) AS subRequete ON c.id = subRequete.commande_id
+SET c.cache_prix_total = subRequete.montantTotal;
+            -------------------
+
+question 7 :
+
+SELECT DATE_FORMAT(date_achat, '%Y-%m') AS mois, SUM(cache_prix_total) AS montantTotal
+FROM commande
+GROUP BY mois
+ORDER BY mois;
+            -------------------
+
+question 8 :
+
+SELECT cl.id AS idClient, cl.prenom AS prenomClient, cl.nom AS nomClient, SUM(c.cache_prix_total) AS montantTotal
+FROM client cl 
+JOIN commande c ON cl.id = c.client_id
+GROUP BY idClient, prenomClient, nomClient
+ORDER BY montantTotal DESC
+LIMIT 10;
+            -------------------
+
+question 9 :
+
+SELECT DATE(date_achat) AS dateCommande, SUM(cache_prix_total) AS montantTotal
+FROM commande 
+GROUP BY dateCommande
+ORDER BY dateCommande;
+            -------------------
+
+question 10 : 
+
+ALTER TABLE commande
+ADD COLUMN category INT;
+            -------------------
+
+question 11, 12, 13 :
+
+CREATE TABLE commande_category (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    category_value INT,
+    description VARCHAR(255)
+);
+
+INSERT INTO commande_category (category_value, description) VALUES
+    (1, 'Moins de 200€'),
+    (2, 'Entre 200€ et 500€'),
+    (3, 'Entre 500€ et 1.000€'),
+    (4, 'Supérieur à 1.000€');
+
+
+UPDATE commande
+SET category = 1
+WHERE cache_prix_total < 200;
+
+
+UPDATE commande
+SET category = 2
+WHERE cache_prix_total >= 200 AND cache_prix_total <= 500;
+
+
+UPDATE commande
+SET category = 3
+WHERE cache_prix_total > 500 AND cache_prix_total <= 1000;
+
+
+UPDATE commande
+SET category = 4
+WHERE cache_prix_total > 1000;
+            -------------------
+
+question 14 :
+
+SELECT c.id AS commande_id
+FROM commande c
+WHERE c.date < '2019-02-01';
+
+DELETE FROM commande_ligne
+WHERE commande_id IN (
+    SELECT c.id
+    FROM commande c
+    WHERE c.date_achat < '2019-02-01'
+);
+
+DELETE FROM commande
+WHERE date_achat < '2019-02-01';
+
+
+
