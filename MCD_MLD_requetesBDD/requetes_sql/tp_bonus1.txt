@@ -1,0 +1,198 @@
+TP Bonus 1
+----------------------------------------------------------------------------------------
+
+question 1 :
+
+SELECT nom_et, prenom_et
+FROM etudiant
+ORDER by nom_et, prenom_et;
+            -------------------
+
+question 2 :
+
+SELECT COUNT(*) AS nbClasses
+FROM classe;
+            -------------------
+
+question 3 :
+
+SELECT nom_et, prenom_et
+FROM etudiant
+WHERE num_classe IN (
+    SELECT num_classe
+    FROM classe
+    WHERE nom_classe IN ('BTS SIO A', 'BTS SIO B')
+);
+            -------------------
+
+question 4: 
+
+SELECT nom_classe, COUNT(*) AS effectif
+FROM etudiant
+INNER JOIN classe ON etudiant.num_classe = classe.num_classe
+GROUP BY nom_classe
+HAVING effectif > 10;
+            -------------------
+
+question 5 :
+
+SELECT nom_et, prenom_et, date_naissance_et
+FROM etudiant
+WHERE date_naissance_et
+BETWEEN '1987-12-24' AND '1990-12-24';
+            -------------------
+
+question 6 :
+
+SELECT mt.nom_mat, ob.note, ob.apreciation
+FROM etudiant et 
+INNER JOIN obtenir ob ON et.num_et = ob.num_et
+INNER JOIN matiere mt ON ob.num_mat = mt.num_mat
+WHERE et.nom_et = 'TRADER' AND et.prenom_et = 'Basile';
+            -------------------
+
+question 7 : 
+
+SELECT mt.nom_mat
+FROM matiere mt
+INNER JOIN obtenir ob ON mt.num_mat = ob.num_mat
+INNER JOIN etudiant et ON ob.num_et = et.num_et
+INNER JOIN classe cl ON et.num_classe = cl.num_classe
+WHERE cl.nom_classe = 'BTS IG%'
+GROUP BY mt.num_mat
+HAVING AVG(ob.note) < 10;
+            -------------------
+
+question 8 :
+
+SELECT AVG(obtenir.note) AS moyenne_classe
+FROM etudiant
+INNER JOIN obtenir ON etudiant.num_et = OBTENIR.num_et
+INNER JOIN classe ON etudiant.num_classe = classe.num_classe
+WHERE classe.nom_classe = 'BTS SIO A';
+            -------------------
+
+question 9 :
+
+SELECT et.nom_et, et.prenom_et, AVG(ob.note) AS moyenne_etudiant
+FROM etudiant et
+INNER JOIN obtenir ob ON et.num_et = ob.num_et
+INNER JOIN classe cl ON et.num_classe = cl.num_classe
+WHERE cl.nom_classe = 'BTS SIO B'
+GROUP BY et.num_et;
+            -------------------
+
+question 10 :
+
+SELECT et.nom_et, et.prenom_et, AVG(ob.note) AS moyenne_etudiant
+FROM etudiant et
+INNER JOIN obtenir ob ON et.num_et = ob.num_et
+INNER JOIN classe cl ON et.num_classe = cl.num_classe
+WHERE cl.nom_classe = 'BTS IG'
+GROUP BY et.num_et
+HAVING AVG(ob.note) < (
+	SELECT AVG(ob.note)
+    FROM etudiant e 
+    INNER JOIN obtenir o ON e.num_et = o.num_et
+    INNER JOIN classe c ON c.num_classe = e.num_classe
+    WHERE c.nom_classe = 'BTS IG%'
+);
+            -------------------
+
+question 11 :
+
+SELECT nom_et, prenom_et
+FROM etudiant
+WHERE num_classe IS NULL;
+            -------------------
+
+question 12 :
+
+SELECT classe.nom_classe
+FROM classe
+WHERE classe.num_classe NOT IN (
+    SELECT num_classe FROM etudiant
+);
+            -------------------
+
+question 13 :
+
+DELETE FROM etudiant
+WHERE num_classe = (
+	SELECT num_classe
+	FROM CLASSE
+	WHERE nom_classe = 'BTS IG'
+);
+
+DELETE FROM classe
+WHERE nom_classe = 'BTS IG';
+            -------------------
+
+question 14 : 
+
+SELECT classe.nom_classe, COUNT(etudiant.num_et) AS nbEtudiants
+FROM classe
+LEFT JOIN etudiant ON classe.num_classe = etudiant.num_classe
+GROUP BY classe.nom_classe;
+            -------------------
+
+question 15 :
+
+SELECT MAX(moyenne_classe) AS moyenne_maximale_generale
+FROM (
+    SELECT AVG(obtenir.note) AS moyenne_classe
+    FROM etudiant
+    INNER JOIN obtenir ON etudiant.num_et = obtenir.num_et
+    INNER JOIN classe ON etudiant.num_classe = classe.num_classe
+    WHERE classe.nom_classe = 'BTS IG%'
+    GROUP BY etudiant.num_classe
+) AS sous_requete;
+            -------------------
+
+question 16 :
+
+SELECT cl.nom_classe, COUNT(et.num_et) AS nbEtudiants
+FROM classe cl
+LEFT JOIN etudiant et ON cl.num_classe = et.num_classe
+GROUP BY cl.nom_classe
+HAVING COUNT(et.num_et) < 10;
+            -------------------
+
+question 17 :
+
+SELECT m.nom_mat, o.note, o.apreciation
+FROM etudiant et
+INNER JOIN obtenir o ON et.num_et = o.num_et
+INNER JOIN matiere m ON o.num_mat = m.num_mat
+WHERE et.nom_et = 'Sehef' AND et.prenom_et = 'Hassan' AND m.nom_mat = 'Mathématiques';
+            -------------------
+
+question 18 :
+
+SELECT m.nom_mat, o.apreciation
+FROM etudiant et
+INNER JOIN obtenir o ON et.num_et = o.num_et
+INNER JOIN matiere m ON o.num_mat = m.num_mat
+WHERE et.nom_et = 'Murray' AND et.prenom_et = 'Bill' AND m.nom_mat = 'Anglais';
+            -------------------
+
+question 19 : 
+
+SELECT m.nom_mat, COUNT(*) AS nbNotes
+FROM obtenir o
+INNER JOIN matiere m ON o.num_mat = m.num_mat
+GROUP BY m.num_mat
+ORDER BY nbNotes DESC
+LIMIT 1;
+            -------------------
+
+question 20 : 
+
+SELECT et.nom_et, et.prenom_et, AVG(o.note) AS moyenne
+FROM etudiant et
+INNER JOIN obtenir o ON et.num_et = o.num_et
+GROUP BY et.num_et
+ORDER BY moyenne DESC
+LIMIT 1;
+
+
