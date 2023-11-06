@@ -23,8 +23,8 @@ public class InsertionDonnees {
 		
 		String commande = "INSERT INTO `commande`(dateCommande,coCli)" +
 				"VALUES('2023-11-02', 1),"
-				+ " ('2023-11-02', 2),"
-				+ " ('2023-11-02', 3)";
+				+ " ('2023-11-02', 2, 2),"
+				+ " ('2023-11-02', 3, 3)";
 		PreparedStatement ps2 = cnx.prepareStatement(commande);
 		ps2.execute();
 		
@@ -35,10 +35,10 @@ public class InsertionDonnees {
 		PreparedStatement ps3 = cnx.prepareStatement(facture);
 		ps3.execute();
 		
-		String livraison = "INSERT INTO `livraison`(dateBL,numCommande,numFact)" +
-				"VALUES('2023-11-04', 1, 1),"
-				+ " ('2023-11-04', 2, 2),"
-				+ " ('2023-11-04', 3, 3)";
+		String livraison = "INSERT INTO `livraison`(dateBL,numCommande,numFact,numFour)" +
+				"VALUES('2023-11-04', 1, 1, 1),"
+				+ " ('2023-11-04', 2, 2, 2),"
+				+ " ('2023-11-04', 3, 3, 3)";
 		PreparedStatement ps4 = cnx.prepareStatement(livraison);
 		ps4.execute();
 		
@@ -69,6 +69,15 @@ public class InsertionDonnees {
 				+ " (9, 9, 12, 4)";
 		PreparedStatement ps8 = cnx.prepareStatement(concerner);
 		ps8.execute();
+
+		String fournisseur = "INSERT INTO `fournisseur`(nomF)" +
+				"VALUES('Fournisseur A'),"
+				+ " ('Fournisseur B'),"
+				+ " ('Fournisseur C'),"
+				+ " ('Fournisseur D'),"
+				+ " ('Fournisseur E'),";
+		PreparedStatement ps9 = cnx.prepareStatement(fournisseur);
+		ps9.execute();
 		System.out.println("Insertion réussie !");
 	}
 

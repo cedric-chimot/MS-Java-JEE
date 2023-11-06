@@ -45,8 +45,10 @@ public class CreerTable {
 			    "`numCommande` INT NOT NULL AUTO_INCREMENT, " +
 			    "`dateCommande` DATE, " +
 			    "`coCli` INT, " +
+			    "`numF` INT, " +
 			    "PRIMARY KEY (`numCommande`), " +
-			    "FOREIGN KEY (`coCli`) REFERENCES `client`(`coCli`)) ENGINE=InnoDB;";
+			    "FOREIGN KEY (`coCli`) REFERENCES `client`(`coCli`))"+
+			    "FOREIGN KEY (`numF`) REFERENCES `fournisseur`(`numF`)) ENGINE=InnoDB;";
 		PreparedStatement ps4 = cnx.prepareStatement(commande);
 		ps4.execute();
 					
@@ -55,6 +57,7 @@ public class CreerTable {
 			    "`dateBL` DATE, " +
 			    "`numCommande` INT, " +
 			    "`numFact` INT, " +
+			    "`numFour` INT, " +
 			    "PRIMARY KEY (`numBL`), " +
 			    "FOREIGN KEY (`numCommande`) REFERENCES `commande`(`numCommande`)," +
 			    "FOREIGN KEY (`numFact`) REFERENCES `facture`(`numFact`)) ENGINE=InnoDB;";
@@ -90,6 +93,13 @@ public class CreerTable {
 			    "FOREIGN KEY (`refProd`) REFERENCES `produit`(`refProd`)) ENGINE=InnoDB;";
 		PreparedStatement ps8 = cnx.prepareStatement(concerner);
 		ps8.execute();
+		
+		String fournisseur = "CREATE TABLE IF NOT EXISTS `fournisseur`(" +
+			    "`numF` INT NOT NULL AUTO_INCREMENT, " +
+			    "`nomF` varchar(50), " +
+			    "PRIMARY KEY (`numF`) ENGINE=InnoDB;";
+		PreparedStatement ps9 = cnx.prepareStatement(fournisseur);
+		ps9.execute();
 	}
 
 }
