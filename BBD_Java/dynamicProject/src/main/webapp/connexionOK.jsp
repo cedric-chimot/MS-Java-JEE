@@ -4,11 +4,11 @@
 <html>
 	<head>
 		<meta charset="ISO-8859-1">
-		<link rel="stylesheet" href="css/bootstrap.min.css">
-		<title>Inscription</title>
+		<title>Success</title>
 	</head>
 	<body>
 	
+		<h1>Connexion réussie !</h1>
 	
 	</body>
 </html>
