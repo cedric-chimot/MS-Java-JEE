@@ -43,6 +43,10 @@ public class MyServlet extends HttpServlet {
 			this.doConnexion(request,response);
 		} else if(flag.equalsIgnoreCase("inscrit")) {
 			this.doInscription(request, response);
+		} else if(flag.equalsIgnoreCase("categorie")) {
+			this.doAjoutCat(request, response);
+		} else if(flag.equalsIgnoreCase("produit")) {
+			this.doAjoutProd(request, response);
 		} else {
 			// Si le paramètre flag n'est ni "connect" ni "inscrit", exécutez la méthode doGet
 			this.doGet(request, response);
@@ -78,8 +82,10 @@ public class MyServlet extends HttpServlet {
                     session.setAttribute("mesErreur", null); // Réinitialiser le message d'erreur
                     // Redirection en fonction du type d'utilisateur
                     if ("a".equalsIgnoreCase(typeUser)) {
+                    	session.setAttribute("bienvenue", login);
                         redirectURL = "/menuAdmin.jsp";
                     } else {
+                    	session.setAttribute("bienvenue", login);
                         redirectURL = "/menuSimple.jsp";
                     }
                 } else {
@@ -199,5 +205,12 @@ public class MyServlet extends HttpServlet {
 	    }
 	}
 
+	private void doAjoutCat(HttpServletRequest request, HttpServletResponse response) {
+		
+	}
+
+	private void doAjoutProd(HttpServletRequest request, HttpServletResponse response) {
+		
+	}
 
 }

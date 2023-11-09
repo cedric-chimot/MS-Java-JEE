@@ -146,6 +146,7 @@ public class Connexion {
 	    return typeUser;
 	}
 
+	//public String ajoutProd()
 	
 	/*public static void main(String[] args) throws SQLException {
 		// Récupérer l'objet Connection
