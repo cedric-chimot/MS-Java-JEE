@@ -36,10 +36,22 @@
 						<div class="form-group mt-2">
 							<label class="form-label">Nom d'utilisateur</label>
 							<input type="text" id="pseudo" name="pseudo" class="form-control">
+							<% if (request.getAttribute("erreur") != null &&
+					        (boolean) request.getAttribute("erreur")) { %>
+					        <span style="color: red;font-size: 0.8rem;">
+					            <%= session.getAttribute("mesErreur") %>
+					        </span>
+					    	<% } %>
 						</div>
 						<div class="form-group mt-2">
 							<label class="form-label">Mot de passe</label>
 							<input type="password" id="mdp" name="mdp" class="form-control">
+							<% if (request.getAttribute("erreur") != null &&
+					        (boolean) request.getAttribute("erreur")) { %>
+					        <span style="color: red;font-size: 0.8rem;">
+					            <%= session.getAttribute("mesErreur") %>
+					        </span>
+					    	<% } %>
 						</div>
 						<div class="d-grid gap-1 mt-2">
 							<button type='submit' class="btn btn-success btn-lg">Valider</button>
