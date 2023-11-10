@@ -205,8 +205,25 @@ public class MyServlet extends HttpServlet {
 	    }
 	}
 
-	private void doAjoutCat(HttpServletRequest request, HttpServletResponse response) {
-		
+	private void doAjoutCat(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	    String designation = request.getParameter("designation");
+	    HttpSession session = request.getSession(true);
+
+	    if (designation != null && !designation.isEmpty()) {
+	        if (!co.categorieExist(designation)) {
+	            co.insertDesignation(designation);
+	            session.setAttribute("message", "Catégorie ajoutée correctement !");
+	            request.getRequestDispatcher("/menuAdmin.jsp").forward(request, response);
+	            return;  // Ajout de return pour éviter l'exécution des lignes suivantes
+	        } else {
+	            session.setAttribute("message", "La catégorie existe déjà !");
+	        }
+	    } else {
+	        session.setAttribute("message", "Veuillez fournir une désignation de catégorie valide.");
+	    }
+
+	    // Redirection vers /ajoutCat.jsp si les conditions ci-dessus ne sont pas remplies
+	    request.getRequestDispatcher("/ajoutCat.jsp").forward(request, response);
 	}
 
 	private void doAjoutProd(HttpServletRequest request, HttpServletResponse response) {

@@ -1,5 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1"
     pageEncoding="ISO-8859-1"%>
+<%@ page import = "dynamicProject.*" %>
+<%@ page import = "java.util.*" %>
 <!DOCTYPE html>
 <html>
 	<head>
@@ -30,13 +32,22 @@
 					</div>
 					<div class="form-group mt-2">
 						<label class="form-label">Catégorie :</label>
+						<% 
+							Connexion c = new Connexion();
+							List<String> l = new ArrayList<String>();
+							l = c.listCat();
+							String item;
+						%>
 						<select class="form-select" id="selectCat" name="selectCat">
 							<option></option>
-							<option>Hightech</option>
-							<option>Electroménager</option>
-							<option>Mobilier</option>
-							<option>Vêtements</option>
-							<option>AutoMoto</option>
+							<% 
+								for(int i = 0 ; i < l.size() ; i++) {
+									item = l.get(i);
+							%>
+								<option value=<%= item %>><%= item %></option>
+							<%
+								}
+							%>
 						</select>
 					</div>
 					<div class="form-group mt-2">

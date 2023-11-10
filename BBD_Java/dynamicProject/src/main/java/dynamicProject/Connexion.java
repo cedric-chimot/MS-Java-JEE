@@ -1,6 +1,7 @@
 package dynamicProject;
 
 import java.sql.*;
+import java.util.*;
 
 public class Connexion {
 	Connection cn = null;
@@ -10,6 +11,7 @@ public class Connexion {
 	String sql = "";
 	String insertCompte = "";
 	String insertUser = "";
+	String insertDesi = "";
 
 	public Connection myCnx() {
 		try {
@@ -145,6 +147,75 @@ public class Connexion {
 	    }
 	    return typeUser;
 	}
+	
+	public boolean categorieExist(String designation) {
+		myCnx();
+		sql = "SELECT idCategorie FROM categorie WHERE designation LIKE '" + designation + "'";
+		try {
+			rs = st.executeQuery(sql);
+			if(rs.next()) {
+				fermerCnx();
+				return true;
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		fermerCnx();
+		return false;
+	}
+	
+	
+	public void insertDesignation(String cat) {
+	    if (!categorieExist(cat)) {
+	        sql = "INSERT INTO categorie(designation) VALUES(?)";
+	        try {
+	            myCnx();
+
+	            // Utiliser une requête préparée pour l'insertion de la catégorie
+	            ps = cn.prepareStatement(sql);
+	            ps.setString(1, cat);
+
+	            // Exécuter la requête
+	            ps.execute();
+	            System.out.println("Requête exécutée");
+
+	            // Commit de la transaction
+	            cn.commit();
+	        } catch (SQLException e) {
+	            e.printStackTrace();
+	            // Rollback en cas d'erreur
+	            try {
+	                if (cn != null) {
+	                    cn.rollback();
+	                }
+	            } catch (SQLException ex) {
+	                ex.printStackTrace();
+	            }
+	        } finally {
+	            fermerCnx();
+	        }
+	    }
+	}
+	
+	public List<String> listCat() {
+		myCnx();
+		List<String> categories = new ArrayList<String>();
+		String sql = "SELECT * FROM `categorie`";
+		try {
+	        PreparedStatement ps = cn.prepareStatement(sql);
+
+	        ResultSet rs = ps.executeQuery();
+	        while(rs.next()) {
+	        	categories.add(rs.getString(2));
+	        }
+
+	        rs.close();
+	        ps.close();
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }		
+		return categories;
+	}
 
 	//public String ajoutProd()
 	
@@ -153,6 +224,8 @@ public class Connexion {
 		Connexion db = new Connexion();
 		Connection cnx = null;
 		cnx = db.myCnx();
+		
+		db.insertDesignation("Jeux video");
 		
 		//db.fermerCnx();
 	}*/

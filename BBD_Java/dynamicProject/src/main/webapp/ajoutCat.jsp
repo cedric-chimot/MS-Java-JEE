@@ -5,27 +5,38 @@
 	<head>
 		<meta charset="ISO-8859-1">
 		<link rel="stylesheet" href="css/bootstrap.min(1).css">
-		<title>Ajout produit</title>
+		<title>Ajout catégorie</title>
 	</head>
 	<body>
 		
 		<%@ include file="navbarAdmin.jsp" %>
 	
 		<form action="MyServlet?flag=categorie" method="POST">
-			<fieldset>
-				<legend class="text-center">Ajouter un produit</legend>
-				<hr>
-				<div class="container text-center">
-					<div class="form-group mt-2">
-					    <label class="form-label">Désignation :</label>
-					    <input type="text" id="nom" name="nom" class="form-control" size="20">
-					</div>
-					<div class="d-grid gap-1 p-2">
-						<button type='submit' class="btn btn-primary btn-lg">Ajouter</button>
-						<button type='reset' class="btn btn-warning btn-lg">Annuler</button>
-					</div>
-				</div>
-			</fieldset>
+		    <fieldset>
+		        <legend class="text-center">Ajouter une catégorie</legend>
+		        <hr>
+		        <div class="container text-center">
+		            <div class="form-group mt-2">
+		                <label class="form-label">Désignation :</label>
+		                <input type="text" id="designation" name="designation" class="form-control" size="20">
+					    <span style="color: red; font-size: 0.8rem;">
+					        <% 
+					            // Vérifie si la session a été modifiée avant d'afficher le message
+					            if (session != null && session.getAttribute("message") != null) {
+					            	// Affiche le message stocké dans la session
+					                out.print(session.getAttribute("message"));
+					             	// Réinitialise le message après l'affichage pour éviter sa répétition
+					                session.setAttribute("message", null);
+					            }
+					        %>
+					    </span>
+		            </div>
+		            <div class="d-grid gap-1 p-2">
+		                <button type='submit' class="btn btn-primary btn-lg">Ajouter</button>
+		                <button type='reset' class="btn btn-warning btn-lg">Annuler</button>
+		            </div>
+		        </div>
+		    </fieldset>
 		</form>
 	
 	
