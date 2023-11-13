@@ -19,10 +19,10 @@
 		    <div class="collapse navbar-collapse" id="navbarColor01">
 		      <ul class="navbar-nav me-auto">
 		        <li class="nav-item">
-		          <a class="nav-link text-light" href="ajoutProd.jsp">Produits</a>
+		          <a class="nav-link text-light" href="menuProd.jsp">Produits</a>
 		        </li>
 		        <li class="nav-item">
-		          <a class="nav-link text-light" href="ajoutCat.jsp">Catégories</a>
+		          <a class="nav-link text-light" href="menuCat.jsp">Catégories</a>
 		        </li>
 		        <li class="nav-item">
 		          <a class="nav-link text-light" href="menuAdmin.jsp">Retour</a>

@@ -213,7 +213,7 @@ public class MyServlet extends HttpServlet {
 	        if (!co.categorieExist(designation)) {
 	            co.insertDesignation(designation);
 	            session.setAttribute("message", "Catégorie ajoutée correctement !");
-	            request.getRequestDispatcher("/menuAdmin.jsp").forward(request, response);
+	            request.getRequestDispatcher("/menuCat.jsp").forward(request, response);
 	            return;  // Ajout de return pour éviter l'exécution des lignes suivantes
 	        } else {
 	            session.setAttribute("message", "La catégorie existe déjà !");
@@ -226,8 +226,76 @@ public class MyServlet extends HttpServlet {
 	    request.getRequestDispatcher("/ajoutCat.jsp").forward(request, response);
 	}
 
-	private void doAjoutProd(HttpServletRequest request, HttpServletResponse response) {
+	private void doAjoutProd(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		String designation = request.getParameter("designation");
+		String puStr = request.getParameter("pu");
+		String qtyStr = request.getParameter("qty");
+		String idCategorieStr = request.getParameter("selectCat");
+		String name = request.getParameter("designation");
+		String img = request.getParameter("img");
 		
+		// Récupération de la session
+	    HttpSession session = request.getSession();
+
+	    // Initialisation de la variable d'erreur
+	    boolean erreur = false;
+		
+		String desiRegex = "^[A-Za-z0-9.-/]+$";
+	    String puRegex = "^[0-9]+$";
+	    String qtyRegex = "^[0-9]+$";
+	    String categorieRegex = "^[A-Za-z0-9.-/]+$";
+		
+	    // Validation du champ designation
+	    if (designation.isEmpty() && !designation.matches(desiRegex)) {
+	        erreur = true;
+	        session.setAttribute("desiErreur", "Veuillez entrer une désignation correcte !");
+	    } else {
+	        session.setAttribute("desiErreur", null); // Réinitialiser le message d'erreur
+	    }
+	    
+	    // Validation du champ prix unitaire
+	    if (puStr.isEmpty() && !puStr.matches(puRegex)) {
+	        erreur = true;
+	        session.setAttribute("puErreur", "Veuillez saisir le prix !");
+	    } else {
+	        session.setAttribute("puErreur", null); // Réinitialiser le message d'erreur
+	    }
+	    
+	    // Validation du champ quantité
+	    if (qtyStr.isEmpty() && !qtyStr.matches(qtyRegex)) {
+	        erreur = true;
+	        session.setAttribute("qtyErreur", "Veuillez saisir la quantité !");
+	    } else {
+	        session.setAttribute("qtyErreur", null); // Réinitialiser le message d'erreur
+	    }
+	    
+	    // Validation du champ catégorie
+	    if (idCategorieStr.isEmpty() && !idCategorieStr.matches(categorieRegex)) {
+	        erreur = true;
+	        session.setAttribute("catErreur", "Veuillez choisir une catégorie de produit !");
+	    } else {
+	        session.setAttribute("catErreur", null); // Réinitialiser le message d'erreur
+	    }
+	    
+	    // Si aucune erreur, insérer le produit et rediriger vers la page de connexion
+	    if (!erreur) {
+	    	int pu = Integer.parseInt(puStr);
+	    	int qty = Integer.parseInt(qtyStr);
+	        int categorie = co.selectCat(idCategorieStr);
+	        if (!co.produitExist(designation)) {
+	        	co.ajoutProd(name, img, designation, pu, qty, categorie);
+	            session.setAttribute("message", "Produit ajouté correctement !");
+	            request.getRequestDispatcher("/menuProd.jsp").forward(request, response);
+	            return;  // Ajout de return pour éviter l'exécution des lignes suivantes
+	        } else {
+	            session.setAttribute("message", "Le produit existe déjà !");
+		        request.getRequestDispatcher("/ajoutProd.jsp").forward(request, response);
+	        }
+	    } else {
+	        // En cas d'erreur, rediriger vers le formulaire d'ajout avec l'indication d'erreur
+	        request.setAttribute("erreur", erreur);
+	        request.getRequestDispatcher("/ajoutProd.jsp").forward(request, response);
+	    }
 	}
 
 }
