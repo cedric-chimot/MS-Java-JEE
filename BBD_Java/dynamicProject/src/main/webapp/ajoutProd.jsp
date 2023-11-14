@@ -2,6 +2,7 @@
     pageEncoding="ISO-8859-1"%>
 <%@ page import = "dynamicProject.*" %>
 <%@ page import = "java.util.*" %>
+<%@ taglib uri = "http://java.sun.com/jsp/jstl/core" prefix="c"%>
 <!DOCTYPE html>
 <html>
 	<head>

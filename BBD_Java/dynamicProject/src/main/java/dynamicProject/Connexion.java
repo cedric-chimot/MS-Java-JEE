@@ -326,30 +326,136 @@ public class Connexion {
 	    }
 	}
 	
-	// ---------- Tableau pour récupérer la liste des produits ----------
+	// ---------- Méthode articles() sans paramètres pour afficher tous les articles ----------
 	public List<Articles> articles() {
-		myCnx();
-		List<Articles> produits = new ArrayList<Articles>();
-		String sql = "SELECT a.*, "
-				+ "c.designation AS desiCat, i.img AS imgArt "
-				+ "FROM article a "
-				+ "JOIN categorie c ON a.idcategorie = c.idcategorie "
-				+ "LEFT JOIN image i ON a.idarticle = i.idarticle;";
-		try {
+	    return articles(null);
+	}
+	
+	// ---------- Méthode articles() pour récupérer la liste des articles par catégories ----------
+	public List<Articles> articles(String categorySearch) {
+	    myCnx();
+	    List<Articles> produits = new ArrayList<Articles>();
+
+	    // On utilise une requête différente si une catégorie de recherche est spécifiée
+	    String sql = null;
+	    if (categorySearch != null && !categorySearch.isEmpty()) {
+	        sql = "SELECT a.*, "
+	                + "c.designation AS desiCat, i.img AS imgArt "
+	                + "FROM article a "
+	                + "JOIN categorie c ON a.idcategorie = c.idcategorie "
+	                + "LEFT JOIN image i ON a.idarticle = i.idarticle "
+	                + "WHERE c.designation = ?";
+	    } else {
+	        // Requête pour obtenir tous les articles si aucune catégorie spécifiée
+	        sql = "SELECT a.*, "
+	                + "c.designation AS desiCat, i.img AS imgArt "
+	                + "FROM article a "
+	                + "JOIN categorie c ON a.idcategorie = c.idcategorie "
+	                + "LEFT JOIN image i ON a.idarticle = i.idarticle";
+	    }
+
+	    try {
 	        PreparedStatement ps = cn.prepareStatement(sql);
 
+	        // Si une catégorie est spécifiée, on définit le paramètre dans la requête
+	        if (categorySearch != null && !categorySearch.isEmpty()) {
+	            ps.setString(1, categorySearch);
+	        }
+
 	        ResultSet rs = ps.executeQuery();
-	        while(rs.next()) {
-	        	produits.add(new Articles(rs.getString("designation"), rs.getInt("pu"), rs.getInt("qty"),
-	        			rs.getString("desiCat"), rs.getString("imgArt")));
+	        while (rs.next()) {
+	            produits.add(new Articles(rs.getInt("idArticle"), rs.getString("designation"), rs.getInt("pu"),
+	            		rs.getInt("qty"), rs.getString("desiCat"), rs.getString("imgArt")));
 	        }
 
 	        rs.close();
 	        ps.close();
 	    } catch (SQLException e) {
 	        e.printStackTrace();
-	    }		
-		return produits;
+	    }
+	    return produits;
+	}
+	
+	// ---------- Modifier un article ----------
+	public void updateProd(int idArticle, String newImg, int newPu, int newQty) {
+	    myCnx();
+	    try {
+	        // Début de la transaction
+	        cn.setAutoCommit(false);
+
+	        // Requête pour modifier l'article
+	        String updateArt = "UPDATE article SET pu = ?, qty = ? WHERE idArticle = ?";
+	        PreparedStatement psArt = cn.prepareStatement(updateArt);
+	        psArt.setInt(1, newPu);
+	        psArt.setInt(2, newQty);
+	        psArt.setInt(3, idArticle);
+	        psArt.executeUpdate();
+	        psArt.close();
+
+	        // Vérifier si newImg est vide avant d'exécuter la requête pour l'image
+	        if (!newImg.isEmpty()) {
+	            // Requête pour modifier l'image
+	            String updateImg = "UPDATE image SET img = ? WHERE idArticle = ?";
+	            PreparedStatement psImg = cn.prepareStatement(updateImg);
+	            psImg.setString(1, newImg);
+	            psImg.setInt(2, idArticle);
+	            psImg.executeUpdate();
+	            psImg.close();
+	        }
+
+	        // Validation de la transaction
+	        cn.commit();
+
+	    } catch (SQLException e) {
+	        // En cas d'erreur, annulation de la transaction
+	        try {
+	            cn.rollback();
+	        } catch (SQLException rollbackException) {
+	            rollbackException.printStackTrace();
+	        }
+	        e.printStackTrace();
+	    } finally {
+	        try {
+	            // Rétablissement du mode auto-commit
+	            cn.setAutoCommit(true);
+	            // Fermeture de la connexion
+	            cn.close();
+	        } catch (SQLException closeException) {
+	            closeException.printStackTrace();
+	        }
+	    }
+	}
+
+	
+	// ---------- Récupérer les données d'un article en particulier ----------
+	public Articles getArticle(int idArticle) {
+	    myCnx();
+	    Articles produit = null;
+
+	    String sql = "SELECT a.*, "
+	            + "c.designation AS desiCat, i.img AS imgArt "
+	            + "FROM article a "
+	            + "JOIN categorie c ON a.idcategorie = c.idcategorie "
+	            + "LEFT JOIN image i ON a.idarticle = i.idarticle "
+	            + "WHERE a.idArticle = ?";
+
+	    try {
+	        PreparedStatement ps = cn.prepareStatement(sql);
+	        ps.setInt(1, idArticle);
+
+	        ResultSet rs = ps.executeQuery();
+	        if(rs.next()) {
+	            produit = new Articles(rs.getInt("idArticle"), rs.getString("designation"), rs.getInt("pu"),
+	                    rs.getInt("qty"), rs.getString("desiCat"), rs.getString("imgArt"));
+	        }
+
+	        rs.close();
+	        ps.close();
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+
+	    return produit;
 	}
 		
 	/*public static void main(String[] args) throws SQLException {

@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 
+import dynamicProject.Articles;
 import dynamicProject.Connexion;
 
 /**
@@ -47,6 +48,8 @@ public class MyServlet extends HttpServlet {
 			this.doAjoutCat(request, response);
 		} else if(flag.equalsIgnoreCase("produit")) {
 			this.doAjoutProd(request, response);
+		} else if(flag.equalsIgnoreCase("modifProd")) {
+			this.doModifProd(request, response);
 		} else {
 			// Si le paramètre flag n'est ni "connect" ni "inscrit", exécutez la méthode doGet
 			this.doGet(request, response);
@@ -295,6 +298,42 @@ public class MyServlet extends HttpServlet {
 	        // En cas d'erreur, rediriger vers le formulaire d'ajout avec l'indication d'erreur
 	        request.setAttribute("erreur", erreur);
 	        request.getRequestDispatcher("/ajoutProd.jsp").forward(request, response);
+	    }
+	}
+	
+	public void doModifProd(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	    // Récupération de l'id du produit à modifier
+	    int idArticle = Integer.parseInt(request.getParameter("idArticle"));
+
+	    // Appel de la méthode pour récupérer les données du produit à modifier
+	    Articles produitModif = co.getArticle(idArticle);
+
+	    // Récupération des autres paramètres
+	    String newImg = request.getParameter("newImg");
+	    int newPu = Integer.parseInt(request.getParameter("newPu"));
+	    int newQty = Integer.parseInt(request.getParameter("newQty"));
+
+	    HttpSession session = request.getSession();
+	    boolean erreur = false;
+
+	    if (produitModif != null) {
+	        // On appelle les données existantes du produit
+	        request.setAttribute("designation", produitModif.getDesignation());
+	        request.setAttribute("selectCat", produitModif.getCategorie());
+	        produitModif.setImg(newImg);
+	        produitModif.setPu(newPu);
+	        produitModif.setQty(newQty);
+
+	        // Appel de la méthode updateProd
+	        co.updateProd(idArticle, newImg, newPu, newQty);
+	        session.setAttribute("message", "Produit modifié correctement!");
+
+	        // Redirection vers la page JSP de la liste des produits
+	        request.getRequestDispatcher("/menuProd.jsp").forward(request, response);
+	    } else {
+	        // En cas d'erreur, rediriger vers le menu avec l'indication d'erreur
+	        request.setAttribute("erreur", erreur);
+	        request.getRequestDispatcher("/menuProd.jsp").forward(request, response);
 	    }
 	}
 
