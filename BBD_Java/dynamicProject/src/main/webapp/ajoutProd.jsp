@@ -95,11 +95,11 @@
 					        %>
 					    </span>
 					</div>
-					<div class="form-group mt-2">
-						<label class="form-label">Image :</label>
-						<input type="file" id="img" name="img" class="form-control" size="255">
-					</div>
-					<div class="d-grid gap-1 p-2">
+					<!-- Bouton d'ajout d'images -->
+					<button type="button" class="btn btn-success btn-lg mt-2" id="ajouterImg"
+						onclick="ajoutImg()">Ajouter une image
+					</button>
+					<div class="d-grid gap-1 p-2 mt-4">
 						<button type='submit' class="btn btn-primary btn-lg">Ajouter</button>
 						<button type='reset' class="btn btn-warning btn-lg">Annuler</button>
 					</div>
@@ -118,6 +118,7 @@
 			</fieldset>
 		</form>
 	
+		<script src="js/ajoutProd.js"></script>
 	
 		<script src="js/bootstrap.bundle.min.js"></script>
 		<!--  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"

@@ -12,7 +12,7 @@
 		<%@ include file="navbarAdmin.jsp" %>
 		
 		<div>
-			<a href="ajoutProd.jsp" class="d-grid gap-1 p-2" style="text-decoration: none;">
+			<a href="ajoutCat.jsp" class="d-grid gap-1 p-2" style="text-decoration: none;">
 				<button type='submit' class="btn btn-primary btn-lg">Ajouter</button>
 			</a>
 			<a href="menuAdmin.jsp" class="d-grid gap-1 p-2" style="text-decoration: none;">

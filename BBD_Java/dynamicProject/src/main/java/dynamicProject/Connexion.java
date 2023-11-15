@@ -14,6 +14,8 @@ public class Connexion {
 	String insertUser = "";
 	String insertArticle = "";
 	String insertImg = "";
+	// Variable pour le nom de l'image
+	private static int imgId = 1;
 	
 	// ---------- Paramétrage de la connexion ----------
 	public Connection myCnx() {
@@ -278,8 +280,81 @@ public class Connexion {
 		return idArticle;
 	}
 	
+	// ---------- Récupérer la désignation du produit pour le nom d'image ----------
+	public String recupDesi() {
+		String designation = "";
+		int idArticle = recupIdArticle();
+		
+		sql = "SELECT designation FROM article WHERE idArticle = ?";
+		try {
+			ps = cn.prepareStatement(sql);
+			ps.setInt(1, idArticle);
+			rs = ps.executeQuery();
+			if(rs.next()) {
+				designation = rs.getString(1);
+			}
+		} catch(SQLException e) {
+			e.printStackTrace();
+		} finally {
+		    // Fermer le PreparedStatement
+		    if (ps != null) {
+		        try {
+		            ps.close();
+		        } catch (SQLException e) {
+		            e.printStackTrace();
+		        }
+		    }
+		}
+		return designation;
+	}
+	
+	// ---------- Ajouter les images avec l'article ----------
+	public void ajoutImg(List<String> images) {
+		try {
+			// Récupérer la designation du dernier article ajouté
+			String designation = recupDesi();
+			
+			// Récupération de l'idArticle
+			int idArticle = recupIdArticle();
+			
+			// Requête pour ajouter une nouvelle image
+	        sql = "INSERT INTO image(name,img,idArticle) VALUES(?,?,?)";
+	        ps = cn.prepareStatement(sql);
+	        
+	        // Boucle pour récupérer plusieurs images
+	        for(String img : images) {
+	        	// Utilisation de la designation pour construire le name
+				String uniqueName = designation + "_image_" + imgId;
+		        ps.setString(1, uniqueName);
+		        ps.setString(2, img);
+		        ps.setInt(3, idArticle);
+		        
+		        System.out.println(uniqueName);
+		        System.out.println(img);
+		        System.out.println(idArticle);
+
+		        // Exécution de l'insertion
+		        ps.executeUpdate();
+		        
+		        // Incrémentation de imgId
+		        imgId++;
+	        }
+		} catch (SQLException e) {
+	        e.printStackTrace();
+	    } finally {
+		    // Fermer le PreparedStatement
+		    if (ps != null) {
+		        try {
+		            ps.close();
+		        } catch (SQLException e) {
+		            e.printStackTrace();
+		        }
+		    }
+		}
+	}
+	
 	// ---------- Ajouter un nouveau produit ----------
-	public void ajoutProd(String name, String img, String designation, int pu, int qty, int idCategorie) {
+	public void ajoutProd(String name, List<String> img, String designation, int pu, int qty, int idCategorie) {
 	    try {
 	        myCnx();
 
@@ -293,20 +368,15 @@ public class Connexion {
 
 	        // Exécution de l'insertion
 	        ps.executeUpdate();
-
-	        // Récupération de l'idArticle généré
-	        int idArticle = recupIdArticle();
-
-	        // Insertion dans la table image
-	        sql = "INSERT INTO image(name,img,idArticle) VALUES(?,?,?)";
-	        ps = cn.prepareStatement(sql);
-	        ps.setString(1, name);
-	        ps.setString(2, img);
-	        ps.setInt(3, idArticle);
-
-	        // Exécution de l'insertion
-	        ps.executeUpdate();
-
+	        
+	        // Incrémentation de imgId
+	        imgId++;
+	        System.out.println(imgId);
+	        System.out.println("liste images : " + img);
+	        	     	
+	     	// Ajout des images associées à l'article
+	        ajoutImg(img);
+	        
 	        // Validation de la transaction
 	        cn.commit();
 
@@ -321,9 +391,17 @@ public class Connexion {
 	        }
 	        e.printStackTrace();
 	    } finally {
-	        // Fermeture de la connexion
+		    // Fermer le PreparedStatement
+		    if (ps != null) {
+		        try {
+		            ps.close();
+		        } catch (SQLException e) {
+		            e.printStackTrace();
+		        }
+		    }
+		    // Fermeture de la connexion
 	        fermerCnx();
-	    }
+		}
 	}
 	
 	// ---------- Méthode articles() sans paramètres pour afficher tous les articles ----------
@@ -339,19 +417,21 @@ public class Connexion {
 	    // On utilise une requête différente si une catégorie de recherche est spécifiée
 	    String sql = null;
 	    if (categorySearch != null && !categorySearch.isEmpty()) {
-	        sql = "SELECT a.*, "
+	        sql = "SELECT DISTINCT a.idArticle, a.designation, a.pu, a.qty, "
 	                + "c.designation AS desiCat, i.img AS imgArt "
 	                + "FROM article a "
 	                + "JOIN categorie c ON a.idcategorie = c.idcategorie "
 	                + "LEFT JOIN image i ON a.idarticle = i.idarticle "
-	                + "WHERE c.designation = ?";
+	                + "WHERE c.designation = ? "
+	                + "GROUP BY a.idArticle";
 	    } else {
 	        // Requête pour obtenir tous les articles si aucune catégorie spécifiée
-	        sql = "SELECT a.*, "
+	        sql = "SELECT DISTINCT a.idArticle, a.designation, a.pu, a.qty, "
 	                + "c.designation AS desiCat, i.img AS imgArt "
 	                + "FROM article a "
 	                + "JOIN categorie c ON a.idcategorie = c.idcategorie "
-	                + "LEFT JOIN image i ON a.idarticle = i.idarticle";
+	                + "LEFT JOIN image i ON a.idarticle = i.idarticle "
+	                + "GROUP BY a.idArticle";
 	    }
 
 	    try {

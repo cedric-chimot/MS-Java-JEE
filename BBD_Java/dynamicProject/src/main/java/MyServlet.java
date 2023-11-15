@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
+import java.util.*;
 
 import dynamicProject.Articles;
 import dynamicProject.Connexion;
@@ -18,6 +19,7 @@ import dynamicProject.Connexion;
 public class MyServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private Connexion co = new Connexion();
+	private static final int maxImg = 3;
        
     /**
      * @see HttpServlet#HttpServlet()
@@ -235,8 +237,25 @@ public class MyServlet extends HttpServlet {
 		String qtyStr = request.getParameter("qty");
 		String idCategorieStr = request.getParameter("selectCat");
 		String name = request.getParameter("designation");
-		String img = request.getParameter("img");
 		
+		// Modifier la récupération des paramètres pour prendre en compte les noms dynamiques des images
+		String[] imgArray = new String[maxImg];  // Création d'un tableau pour stocker les noms de fichiers d'images
+
+		// Utilisation d'une boucle pour récupérer les paramètres d'image dynamiques (img1, img2, etc.)
+		for (int i = 1; i <= maxImg; i++) {
+		    // Construire le nom du paramètre d'image (img1, img2, etc.) en fonction de l'index de la boucle
+		    String paramName = "img" + i;
+
+		    // Récupérer la valeur du paramètre d'image à partir de la requête
+		    String imgValue = request.getParameter(paramName);
+
+		    // Stocker la valeur dans le tableau d'images
+		    imgArray[i - 1] = imgValue;
+		}
+
+		// Convertir le tableau d'images en une liste (utilisation de Collections.emptyList() si le tableau est nul)
+		List<String> img = (imgArray != null) ? Arrays.asList(imgArray) : Collections.emptyList();
+
 		// Récupération de la session
 	    HttpSession session = request.getSession();
 
@@ -305,9 +324,6 @@ public class MyServlet extends HttpServlet {
 	    // Récupération de l'id du produit à modifier
 	    int idArticle = Integer.parseInt(request.getParameter("idArticle"));
 
-	    // Appel de la méthode pour récupérer les données du produit à modifier
-	    Articles produitModif = co.getArticle(idArticle);
-
 	    // Récupération des autres paramètres
 	    String newImg = request.getParameter("newImg");
 	    int newPu = Integer.parseInt(request.getParameter("newPu"));
@@ -315,6 +331,12 @@ public class MyServlet extends HttpServlet {
 
 	    HttpSession session = request.getSession();
 	    boolean erreur = false;
+
+	    // Appel de la méthode updateProd
+	    co.updateProd(idArticle, newImg, newPu, newQty);
+
+	    // Récupération des données mises à jour du produit
+	    Articles produitModif = co.getArticle(idArticle);
 
 	    if (produitModif != null) {
 	        // On appelle les données existantes du produit
@@ -324,8 +346,6 @@ public class MyServlet extends HttpServlet {
 	        produitModif.setPu(newPu);
 	        produitModif.setQty(newQty);
 
-	        // Appel de la méthode updateProd
-	        co.updateProd(idArticle, newImg, newPu, newQty);
 	        session.setAttribute("message", "Produit modifié correctement!");
 
 	        // Redirection vers la page JSP de la liste des produits
@@ -336,5 +356,6 @@ public class MyServlet extends HttpServlet {
 	        request.getRequestDispatcher("/menuProd.jsp").forward(request, response);
 	    }
 	}
+
 
 }
