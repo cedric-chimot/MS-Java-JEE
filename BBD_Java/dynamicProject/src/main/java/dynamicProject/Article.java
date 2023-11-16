@@ -1,37 +1,34 @@
 package dynamicProject;
 
-import java.util.List;
+import javax.persistence.*;
 
-public class Articles {
-	private int idArticle;
+@Entity
+public class Article {
+	@Id
+	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	private String designation;
 	private int pu;
 	private int qty;
-	private String categorie;
-	private List<String> images;
+	private int categorie;
+	private String images;
 
-	public Articles( int idArticle, String designation, int pu, int qty, String categorie, List<String> images) {
+	public Article(String designation, int pu, int qty, int idCategorie, String name) {
 		super();
-		this.idArticle = idArticle;
 		this.designation = designation;
 		this.pu = pu;
 		this.qty = qty;
-		this.categorie = categorie;
-		this.images = images;
+		this.categorie = idCategorie;
+		this.images = name;
 	}
 	
-	public List<String> getImages() {
+	public String getImages() {
 		return images;
 	}
 	
-	public void setImages(List<String> images) {
+	public void setImages(String images) {
 		this.images = images;
 	}
 	
-	public int getIdArticle() {
-		return idArticle;
-	}
-
 	public String getDesignation() {
 		return designation;
 	}
@@ -52,7 +49,7 @@ public class Articles {
 		this.qty = qty;
 	}
 
-	public String getCategorie() {
+	public int getCategorie() {
 		return categorie;
 	}
 

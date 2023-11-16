@@ -3,6 +3,11 @@ package dynamicProject;
 import java.sql.*;
 import java.util.*;
 
+import org.hibernate.*;
+import org.hibernate.cfg.*;
+
+import jakarta.servlet.http.HttpServletRequest;
+
 public class Connexion {
 	// Création des variables
 	Connection cn = null;
@@ -15,7 +20,7 @@ public class Connexion {
 	String insertArticle = "";
 	String insertImg = "";
 	// Variable pour le nom de l'image
-	private static int imgId = 1;
+	private static int imgId;
 	
 	// ---------- Paramétrage de la connexion ----------
 	public Connection myCnx() {
@@ -412,7 +417,7 @@ public class Connexion {
 	// ---------- Méthode articles() pour récupérer la liste des articles par catégories ----------
 	public List<Articles> articles(String categorySearch) {
 	    myCnx();
-	    List<Articles> produits = new ArrayList<Articles>();
+	    List<Articles> produits = new ArrayList<>();
 
 	    // On utilise une requête différente si une catégorie de recherche est spécifiée
 	    String sql = null;
@@ -422,16 +427,14 @@ public class Connexion {
 	                + "FROM article a "
 	                + "JOIN categorie c ON a.idcategorie = c.idcategorie "
 	                + "LEFT JOIN image i ON a.idarticle = i.idarticle "
-	                + "WHERE c.designation = ? "
-	                + "GROUP BY a.idArticle";
+	                + "WHERE c.designation = ? ";
 	    } else {
 	        // Requête pour obtenir tous les articles si aucune catégorie spécifiée
 	        sql = "SELECT DISTINCT a.idArticle, a.designation, a.pu, a.qty, "
 	                + "c.designation AS desiCat, i.img AS imgArt "
 	                + "FROM article a "
 	                + "JOIN categorie c ON a.idcategorie = c.idcategorie "
-	                + "LEFT JOIN image i ON a.idarticle = i.idarticle "
-	                + "GROUP BY a.idArticle";
+	                + "LEFT JOIN image i ON a.idarticle = i.idarticle ";
 	    }
 
 	    try {
@@ -443,13 +446,33 @@ public class Connexion {
 	        }
 
 	        ResultSet rs = ps.executeQuery();
+	        Map<Integer, Articles> articleMap = new HashMap<>();
+	        
 	        while (rs.next()) {
-	            produits.add(new Articles(rs.getInt("idArticle"), rs.getString("designation"), rs.getInt("pu"),
-	            		rs.getInt("qty"), rs.getString("desiCat"), rs.getString("imgArt")));
+	            int idArticle = rs.getInt("idArticle");
+	            Articles article = articleMap.get(idArticle);
+
+	            if (article == null) {
+	                // Si l'article n'est pas déjà dans la map, on le crée
+	                article = new Articles(rs.getInt("idArticle"), rs.getString("designation"),
+	                    rs.getInt("pu"), rs.getInt("qty"), rs.getString("desiCat"), new ArrayList<>());
+	                articleMap.put(idArticle, article);
+	            }
+
+	            // Ajouter l'image à la liste d'images de l'article seulement si elle n'est pas nulle
+	            String img = rs.getString("imgArt");
+	            if (img != null && !img.isEmpty()) {
+	                article.getImages().add(img);
+	            }
 	        }
 
+        	// Fermer les ressources
 	        rs.close();
 	        ps.close();
+	        
+	        // On convertit la map pour le retour
+	        return new ArrayList<>(articleMap.values());
+	        
 	    } catch (SQLException e) {
 	        e.printStackTrace();
 	    }
@@ -457,7 +480,7 @@ public class Connexion {
 	}
 	
 	// ---------- Modifier un article ----------
-	public void updateProd(int idArticle, String newImg, int newPu, int newQty) {
+	public void updateProd(int idArticle, List<String> newImgs, int newPu, int newQty, HttpServletRequest request, boolean isUpdate) {
 	    myCnx();
 	    try {
 	        // Début de la transaction
@@ -465,22 +488,48 @@ public class Connexion {
 
 	        // Requête pour modifier l'article
 	        String updateArt = "UPDATE article SET pu = ?, qty = ? WHERE idArticle = ?";
-	        PreparedStatement psArt = cn.prepareStatement(updateArt);
-	        psArt.setInt(1, newPu);
-	        psArt.setInt(2, newQty);
-	        psArt.setInt(3, idArticle);
-	        psArt.executeUpdate();
-	        psArt.close();
+	        try (PreparedStatement psArt = cn.prepareStatement(updateArt)) {
+	            psArt.setInt(1, newPu);
+	            psArt.setInt(2, newQty);
+	            psArt.setInt(3, idArticle);
+	            psArt.executeUpdate();
+	        }
 
-	        // Vérifier si newImg est vide avant d'exécuter la requête pour l'image
-	        if (!newImg.isEmpty()) {
-	            // Requête pour modifier l'image
-	            String updateImg = "UPDATE image SET img = ? WHERE idArticle = ?";
-	            PreparedStatement psImg = cn.prepareStatement(updateImg);
-	            psImg.setString(1, newImg);
-	            psImg.setInt(2, idArticle);
-	            psImg.executeUpdate();
-	            psImg.close();
+	        // Requête pour récupérer le nombre actuel d'images du produit
+	        String selectImgCount = "SELECT COUNT(*) FROM image WHERE idArticle = ?";
+	        try (PreparedStatement psCount = cn.prepareStatement(selectImgCount)) {
+	            psCount.setInt(1, idArticle);
+	            try (ResultSet rsCount = psCount.executeQuery()) {
+	                rsCount.next();
+	                int currentImgCount = rsCount.getInt(1);
+
+	                // Requête pour modifier les images existantes
+	                String updateExistingImg = "UPDATE image SET img = ? WHERE idArticle = ?";
+	                try (PreparedStatement psExistingImg = cn.prepareStatement(updateExistingImg)) {
+	                    for (int i = 0; i < currentImgCount; i++) {
+	                        String imgParam = request.getParameter("img" + i);
+	                        if (imgParam != null && !imgParam.isEmpty()) {
+	                            psExistingImg.setString(1, imgParam);
+	                            psExistingImg.setInt(2, idArticle);
+	                            psExistingImg.executeUpdate();
+	                        }
+	                    }
+	                }
+
+	                // Requête pour ajouter de nouvelles images
+	                String insertNewImg = "INSERT INTO image(name, img, idArticle) VALUES (?, ?, ?)";
+	                try (PreparedStatement psNewImg = cn.prepareStatement(insertNewImg)) {
+	                    for (String img : newImgs) {
+	                        if (!img.isEmpty()) {
+	                            psNewImg.setString(1, "new_image_" + imgId);
+	                            psNewImg.setString(2, img);
+	                            psNewImg.setInt(3, idArticle);
+	                            psNewImg.executeUpdate();
+	                            imgId++;
+	                        }
+	                    }
+	                }
+	            }
 	        }
 
 	        // Validation de la transaction
@@ -505,7 +554,6 @@ public class Connexion {
 	        }
 	    }
 	}
-
 	
 	// ---------- Récupérer les données d'un article en particulier ----------
 	public Articles getArticle(int idArticle) {
@@ -525,8 +573,9 @@ public class Connexion {
 
 	        ResultSet rs = ps.executeQuery();
 	        if(rs.next()) {
+	        	List<String> images = Arrays.asList(rs.getString("imgArt").split(","));
 	            produit = new Articles(rs.getInt("idArticle"), rs.getString("designation"), rs.getInt("pu"),
-	                    rs.getInt("qty"), rs.getString("desiCat"), rs.getString("imgArt"));
+	                    rs.getInt("qty"), rs.getString("desiCat"), images);
 	        }
 
 	        rs.close();
@@ -536,6 +585,18 @@ public class Connexion {
 	    }
 
 	    return produit;
+	}
+	
+	// ---------- Ajouter un nouveau produit Hibernate ----------
+	public void ajoutProdHibernate(Article a) {
+	    Configuration configuration = new Configuration().configure();
+	    SessionFactory sf = configuration.buildSessionFactory();
+	    Session session = sf.openSession();
+	    Transaction tr = session.beginTransaction();
+	    session.persist(a);
+	    tr.commit();
+	    session.close();
+	    sf.close();
 	}
 		
 	/*public static void main(String[] args) throws SQLException {

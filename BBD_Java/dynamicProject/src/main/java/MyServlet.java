@@ -8,8 +8,10 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.*;
 
+import dynamicProject.Article;
 import dynamicProject.Articles;
 import dynamicProject.Connexion;
+
 
 /**
  * Servlet implementation class MyServlet
@@ -52,7 +54,9 @@ public class MyServlet extends HttpServlet {
 			this.doAjoutProd(request, response);
 		} else if(flag.equalsIgnoreCase("modifProd")) {
 			this.doModifProd(request, response);
-		} else {
+		} else if(flag.equalsIgnoreCase("ajoutProdHibernate")) {
+			this.doAjoutProdHibernate(request, response);
+		}  else {
 			// Si le paramètre flag n'est ni "connect" ni "inscrit", exécutez la méthode doGet
 			this.doGet(request, response);
 		}
@@ -322,40 +326,89 @@ public class MyServlet extends HttpServlet {
 	
 	public void doModifProd(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 	    // Récupération de l'id du produit à modifier
-	    int idArticle = Integer.parseInt(request.getParameter("idArticle"));
+	    String idArticleParam = request.getParameter("idArticle");
 
-	    // Récupération des autres paramètres
-	    String newImg = request.getParameter("newImg");
-	    int newPu = Integer.parseInt(request.getParameter("newPu"));
-	    int newQty = Integer.parseInt(request.getParameter("newQty"));
+	    // Vérification si idArticleParam n'est ni null ni une chaîne vide
+	    if (idArticleParam != null && !idArticleParam.isEmpty()) {
+	        try {
+	            // Conversion de l'id en entier
+	            int idArticle = Integer.parseInt(idArticleParam);
 
-	    HttpSession session = request.getSession();
-	    boolean erreur = false;
+	            // Récupération des autres paramètres
+	            String[] newImgsArray = request.getParameterValues("newImg");
+	            List<String> newImgs = (newImgsArray != null) ? Arrays.asList(newImgsArray) : Collections.emptyList();
 
-	    // Appel de la méthode updateProd
-	    co.updateProd(idArticle, newImg, newPu, newQty);
+	            // Ajoutez des vérifications pour éviter les chaînes nulles ou vides
+	            String newPuParam = request.getParameter("newPu");
+	            int newPu = (newPuParam != null && !newPuParam.isEmpty()) ? Integer.parseInt(newPuParam) : 0;
 
-	    // Récupération des données mises à jour du produit
-	    Articles produitModif = co.getArticle(idArticle);
+	            String newQtyParam = request.getParameter("newQty");
+	            int newQty = (newQtyParam != null && !newQtyParam.isEmpty()) ? Integer.parseInt(newQtyParam) : 0;
 
-	    if (produitModif != null) {
-	        // On appelle les données existantes du produit
-	        request.setAttribute("designation", produitModif.getDesignation());
-	        request.setAttribute("selectCat", produitModif.getCategorie());
-	        produitModif.setImg(newImg);
-	        produitModif.setPu(newPu);
-	        produitModif.setQty(newQty);
+	            HttpSession session = request.getSession();
+	            boolean erreur = false;
 
-	        session.setAttribute("message", "Produit modifié correctement!");
+	            // Condition pour vérifier quel input est rempli
+	            String submitType = request.getParameter("submitType");
 
-	        // Redirection vers la page JSP de la liste des produits
-	        request.getRequestDispatcher("/menuProd.jsp").forward(request, response);
+	            if ("modify".equals(submitType)) {
+	                // L'utilisateur a cliqué sur le bouton "Modifier" du formulaire de modification
+	                co.updateProd(idArticle, newImgs, newPu, newQty, request, true);
+	            } else {
+	                // L'utilisateur a cliqué sur le bouton "Modifier/Ajouter" du formulaire
+	                co.updateProd(idArticle, newImgs, newPu, newQty, request, false);
+	            }
+
+	            // Récupération des données mises à jour du produit
+	            Articles produitModif = co.getArticle(idArticle);
+
+	            if (produitModif != null) {
+	                // On appelle les données existantes du produit
+	                request.setAttribute("designation", produitModif.getDesignation());
+	                request.setAttribute("selectCat", produitModif.getCategorie());
+	                produitModif.setImages(newImgs);
+	                produitModif.setPu(newPu);
+	                produitModif.setQty(newQty);
+
+	                session.setAttribute("message", "Produit modifié correctement!");
+
+	                // Redirection vers la page JSP de la liste des produits
+	                request.getRequestDispatcher("/menuProd.jsp").forward(request, response);
+	            } else {
+	                // En cas d'erreur, rediriger vers le menu avec l'indication d'erreur
+	                request.setAttribute("erreur", erreur);
+	                request.getRequestDispatcher("/menuProd.jsp").forward(request, response);
+	            }
+	        } catch (NumberFormatException e) {
+	            // Gérer le cas où la conversion échoue
+	            System.err.println("Erreur lors de la conversion de l'idArticle en entier : " + idArticleParam);
+	            // Vous pouvez renvoyer un message d'erreur ou rediriger vers une page d'erreur
+	            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "L'id du produit est invalide");
+	        }
 	    } else {
-	        // En cas d'erreur, rediriger vers le menu avec l'indication d'erreur
-	        request.setAttribute("erreur", erreur);
-	        request.getRequestDispatcher("/menuProd.jsp").forward(request, response);
+	        // Gérer le cas où idArticleParam est null ou une chaîne vide
+	        // Peut-être renvoyer un message d'erreur ou rediriger vers une page d'erreur
+	        response.sendError(HttpServletResponse.SC_BAD_REQUEST, "L'id du produit est manquant");
 	    }
 	}
 
+	
+	// -------------------------- Méthode HIBERNATE --------------------------------
+	
+	private void doAjoutProdHibernate(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		String designation = request.getParameter("designation");
+		String puStr = request.getParameter("pu");
+		String qtyStr = request.getParameter("qty");
+		String idCategorieStr = request.getParameter("selectCat");
+		String name = request.getParameter("designation");
+		
+		int pu = Integer.parseInt(puStr);
+    	int qty = Integer.parseInt(qtyStr);
+    	int idCategorie = Integer.parseInt(idCategorieStr);
+		
+		Article a = new Article(designation,pu,qty,idCategorie,name);
+		co.ajoutProdHibernate(a);
+	}
+	
 
 }

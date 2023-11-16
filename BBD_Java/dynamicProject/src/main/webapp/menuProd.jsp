@@ -72,7 +72,14 @@
 		    		<tr>
 		    			<!-- Cellule pour l'image avec un élément img -->
 		    			<td class="text-white bg-secondary text-center">
-		    				<img src="images/<%= article.getImg() %>" alt="imgProd" width="30" height="30">
+		    				<% 
+		    					// Récupération de laliste des images
+		    					List<String> images = article.getImages();
+		    					//Boucle pour afficher toutes les images du produit
+		    					for(String image : images) {
+		    				%>
+		    				<img src="images/<%= image %>" alt="imgProd" width="30" height="30">
+		    				<% } %>
 		    			</td>
 		    			<td class="text-white bg-secondary text-center"><%= article.getDesignation() %></td>
 		    			<td class="text-white bg-secondary text-center"><%= article.getPu() %></td>
