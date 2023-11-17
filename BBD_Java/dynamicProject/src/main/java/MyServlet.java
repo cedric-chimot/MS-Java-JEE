@@ -325,73 +325,74 @@ public class MyServlet extends HttpServlet {
 	}
 	
 	public void doModifProd(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-	    // Récupération de l'id du produit à modifier
-	    String idArticleParam = request.getParameter("idArticle");
+		// Récupération de l'id du produit à modifier
+		String idArticleParam = request.getParameter("idArticle");
 
-	    // Vérification si idArticleParam n'est ni null ni une chaîne vide
-	    if (idArticleParam != null && !idArticleParam.isEmpty()) {
-	        try {
-	            // Conversion de l'id en entier
-	            int idArticle = Integer.parseInt(idArticleParam);
+		// Vérification si idArticleParam n'est ni null ni une chaîne vide
+		if (idArticleParam != null && !idArticleParam.isEmpty()) {
+		    try {
+		        // Conversion de l'id en entier
+		        int idArticle = Integer.parseInt(idArticleParam);
 
-	            // Récupération des autres paramètres
-	            String[] newImgsArray = request.getParameterValues("newImg");
-	            List<String> newImgs = (newImgsArray != null) ? Arrays.asList(newImgsArray) : Collections.emptyList();
+		        // Récupération des images actuelles et nouvelles
+		        String[] currentImagesArray = request.getParameterValues("currentImages[]");
+		        List<String> currentImages = (currentImagesArray != null) ? Arrays.asList(currentImagesArray) : Collections.emptyList();
+		        String[] newImgsArray = request.getParameterValues("newImg");
+		        List<String> newImgs = (newImgsArray != null) ? Arrays.asList(newImgsArray) : Collections.emptyList();
 
-	            // Ajoutez des vérifications pour éviter les chaînes nulles ou vides
-	            String newPuParam = request.getParameter("newPu");
-	            int newPu = (newPuParam != null && !newPuParam.isEmpty()) ? Integer.parseInt(newPuParam) : 0;
+		        // Ajoutez des vérifications pour éviter les chaînes nulles ou vides
+		        String newPuParam = request.getParameter("newPu");
+		        int newPu = (newPuParam != null && !newPuParam.isEmpty()) ? Integer.parseInt(newPuParam) : 0;
 
-	            String newQtyParam = request.getParameter("newQty");
-	            int newQty = (newQtyParam != null && !newQtyParam.isEmpty()) ? Integer.parseInt(newQtyParam) : 0;
+		        String newQtyParam = request.getParameter("newQty");
+		        int newQty = (newQtyParam != null && !newQtyParam.isEmpty()) ? Integer.parseInt(newQtyParam) : 0;
 
-	            HttpSession session = request.getSession();
-	            boolean erreur = false;
+		        HttpSession session = request.getSession();
+		        boolean erreur = false;
 
-	            // Condition pour vérifier quel input est rempli
-	            String submitType = request.getParameter("submitType");
+		        // Condition pour vérifier quel input est rempli
+		        String submitType = request.getParameter("submitType");
 
-	            if ("modify".equals(submitType)) {
-	                // L'utilisateur a cliqué sur le bouton "Modifier" du formulaire de modification
-	                co.updateProd(idArticle, newImgs, newPu, newQty, request, true);
-	            } else {
-	                // L'utilisateur a cliqué sur le bouton "Modifier/Ajouter" du formulaire
-	                co.updateProd(idArticle, newImgs, newPu, newQty, request, false);
-	            }
+		        if ("modify".equals(submitType)) {
+		            // L'utilisateur a cliqué sur le bouton "Modifier" du formulaire de modification
+		            co.updateProd(idArticle, currentImages, newPu,  newQty, newImgs, request, true);
+		        } else {
+		            // L'utilisateur a cliqué sur le bouton "Modifier/Ajouter" du formulaire
+		            co.updateProd(idArticle, currentImages, newPu, newQty, newImgs, request, false);
+		        }
 
-	            // Récupération des données mises à jour du produit
-	            Articles produitModif = co.getArticle(idArticle);
+		        // Récupération des données mises à jour du produit
+		        Articles produitModif = co.getArticle(idArticle);
 
-	            if (produitModif != null) {
-	                // On appelle les données existantes du produit
-	                request.setAttribute("designation", produitModif.getDesignation());
-	                request.setAttribute("selectCat", produitModif.getCategorie());
-	                produitModif.setImages(newImgs);
-	                produitModif.setPu(newPu);
-	                produitModif.setQty(newQty);
+		        if (produitModif != null) {
+		            // On appelle les données existantes du produit
+		            request.setAttribute("designation", produitModif.getDesignation());
+		            request.setAttribute("selectCat", produitModif.getCategorie());
+		            produitModif.setImages(newImgs);
+		            produitModif.setPu(newPu);
+		            produitModif.setQty(newQty);
 
-	                session.setAttribute("message", "Produit modifié correctement!");
+		            session.setAttribute("message", "Produit modifié correctement!");
 
-	                // Redirection vers la page JSP de la liste des produits
-	                request.getRequestDispatcher("/menuProd.jsp").forward(request, response);
-	            } else {
-	                // En cas d'erreur, rediriger vers le menu avec l'indication d'erreur
-	                request.setAttribute("erreur", erreur);
-	                request.getRequestDispatcher("/menuProd.jsp").forward(request, response);
-	            }
-	        } catch (NumberFormatException e) {
-	            // Gérer le cas où la conversion échoue
-	            System.err.println("Erreur lors de la conversion de l'idArticle en entier : " + idArticleParam);
-	            // Vous pouvez renvoyer un message d'erreur ou rediriger vers une page d'erreur
-	            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "L'id du produit est invalide");
-	        }
-	    } else {
-	        // Gérer le cas où idArticleParam est null ou une chaîne vide
-	        // Peut-être renvoyer un message d'erreur ou rediriger vers une page d'erreur
-	        response.sendError(HttpServletResponse.SC_BAD_REQUEST, "L'id du produit est manquant");
-	    }
+		            // Redirection vers la page JSP de la liste des produits
+		            request.getRequestDispatcher("/menuProd.jsp").forward(request, response);
+		        } else {
+		            // En cas d'erreur, rediriger vers le menu avec l'indication d'erreur
+		            request.setAttribute("erreur", erreur);
+		            request.getRequestDispatcher("/menuProd.jsp").forward(request, response);
+		        }
+		    } catch (NumberFormatException e) {
+		        // Gérer le cas où la conversion échoue
+		        System.err.println("Erreur lors de la conversion de l'idArticle en entier : " + idArticleParam);
+		        // Vous pouvez renvoyer un message d'erreur ou rediriger vers une page d'erreur
+		        response.sendError(HttpServletResponse.SC_BAD_REQUEST, "L'id du produit est invalide");
+		    }
+		} else {
+		    // Gérer le cas où idArticleParam est null ou une chaîne vide
+		    // Peut-être renvoyer un message d'erreur ou rediriger vers une page d'erreur
+		    response.sendError(HttpServletResponse.SC_BAD_REQUEST, "L'id du produit est manquant");
+		}
 	}
-
 	
 	// -------------------------- Méthode HIBERNATE --------------------------------
 	

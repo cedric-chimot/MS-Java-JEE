@@ -47,26 +47,20 @@
 		
 		            <!-- Input caché pour récupérer l'id du produit -->
 		            <input type="hidden" id="idArticle" name="idArticle" value="<%= request.getParameter("idArticle") %>" readonly>
-		
-		            <div class="form-group mt-2">
-		                <label class="form-label">Images actuelles :</label>
-		                <%
-		                    List<String> currentImages = produitModif != null ? produitModif.getImages() : new ArrayList<>();
-		                    System.out.println("Nombre d'images : " + currentImages.size()); // Ajoutez cette ligne de débogage
-		                    if (!currentImages.isEmpty()) {
-		                        for (int i = 0 ; i < currentImages.size() ; i++) {
-		                %>
-		                            <input type="hidden" name="img<%= i %>" value="<%= currentImages.get(i) %>">
-		                            <img src="images/<%= currentImages.get(i) %>" alt="Image actuelle du produit" width="100">
-		                <%
-		                        }
-		                    } else {
-		                %>
-		                        <span>Aucune image disponible</span>
-		                <%
-		                    }
-		                %>
-		            </div>
+					<div class="form-group mt-2">
+						<label class="form-label">Image(s) actuelle(s) :</label>
+					    <%
+					        int idArticleToModify = Integer.parseInt(request.getParameter("idArticle"));
+					        List<String> currentImages = c.recupImages(idArticleToModify);
+					    
+					        for (String imageName : currentImages) {
+					    %>
+					        <img src="images/<%= imageName %>" alt="Image actuelle du produit" width="100">
+					        <input type="hidden" name="currentImages[]" value="<%= imageName %>">
+					    <%
+					        }
+					    %>
+					</div>
 		            <div class="form-group mt-2">
 		                <label class="form-label">Désignation :</label>
 		                <!-- "disabled" rend le champ visible mais non modifiable -->

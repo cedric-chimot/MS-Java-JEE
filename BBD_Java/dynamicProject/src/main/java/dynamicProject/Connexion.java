@@ -479,8 +479,40 @@ public class Connexion {
 	    return produits;
 	}
 	
+	// ---------- Récupérer la liste d'images ----------
+	public List<String> recupImages(int idArticle) {
+	    myCnx();
+	    List<String> currentImages = new ArrayList<>();
+
+	    String listImages = "SELECT img FROM image WHERE idArticle = ?";
+	    try {
+	        PreparedStatement psImg = cn.prepareStatement(listImages);
+	        psImg.setInt(1, idArticle);
+	        ResultSet rs = psImg.executeQuery();
+
+	        // Ajoutez une déclaration de journalisation pour suivre le début de la boucle
+	        System.out.println("Début de la récupération des images...");
+
+	        while (rs.next()) {
+	            currentImages.add(rs.getString("img"));
+
+	            // Ajoutez une déclaration de journalisation pour suivre chaque image récupérée
+	            System.out.println("Image récupérée : " + rs.getString("img"));
+	        }
+
+	        // Ajoutez une déclaration de journalisation pour suivre la fin de la boucle
+	        System.out.println("Fin de la récupération des images.");
+
+	        rs.close();
+	        psImg.close();
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+	    return currentImages;
+	}
+	
 	// ---------- Modifier un article ----------
-	public void updateProd(int idArticle, List<String> newImgs, int newPu, int newQty, HttpServletRequest request, boolean isUpdate) {
+	public void updateProd(int idArticle, List<String> currentImages, int newPu, int newQty, List<String> newImgs, HttpServletRequest request, boolean isUpdate) {
 	    myCnx();
 	    try {
 	        // Début de la transaction
@@ -495,40 +527,33 @@ public class Connexion {
 	            psArt.executeUpdate();
 	        }
 
-	        // Requête pour récupérer le nombre actuel d'images du produit
-	        String selectImgCount = "SELECT COUNT(*) FROM image WHERE idArticle = ?";
-	        try (PreparedStatement psCount = cn.prepareStatement(selectImgCount)) {
-	            psCount.setInt(1, idArticle);
-	            try (ResultSet rsCount = psCount.executeQuery()) {
-	                rsCount.next();
-	                int currentImgCount = rsCount.getInt(1);
-
-	                // Requête pour modifier les images existantes
-	                String updateExistingImg = "UPDATE image SET img = ? WHERE idArticle = ?";
-	                try (PreparedStatement psExistingImg = cn.prepareStatement(updateExistingImg)) {
-	                    for (int i = 0; i < currentImgCount; i++) {
-	                        String imgParam = request.getParameter("img" + i);
-	                        if (imgParam != null && !imgParam.isEmpty()) {
-	                            psExistingImg.setString(1, imgParam);
-	                            psExistingImg.setInt(2, idArticle);
-	                            psExistingImg.executeUpdate();
-	                        }
-	                    }
+	        // Suppression des images qui ne sont plus présentes dans le formulaire
+	        for (String currentImage : currentImages) {
+	            if (!newImgs.contains(currentImage)) {
+	                // Vérifier si l'image actuelle doit être supprimée ou conservée
+	                if (shouldDeleteImage(request, currentImage, currentImages)) {
+	                    // Supprimer l'image de la base de données
+	                    deleteImage(idArticle, currentImage);
 	                }
+	            }
+	        }
 
-	                // Requête pour ajouter de nouvelles images
-	                String insertNewImg = "INSERT INTO image(name, img, idArticle) VALUES (?, ?, ?)";
-	                try (PreparedStatement psNewImg = cn.prepareStatement(insertNewImg)) {
-	                    for (String img : newImgs) {
-	                        if (!img.isEmpty()) {
-	                            psNewImg.setString(1, "new_image_" + imgId);
-	                            psNewImg.setString(2, img);
-	                            psNewImg.setInt(3, idArticle);
-	                            psNewImg.executeUpdate();
-	                            imgId++;
-	                        }
-	                    }
-	                }
+	        // Mise à jour des images existantes
+	        for (int i = 0; i < currentImages.size() && i < newImgs.size(); i++) {
+	            String imgParam = request.getParameter("img" + i);
+	            if (imgParam != null && !imgParam.isEmpty()) {
+	                // Mettre à jour l'image dans la base de données
+	                updateImage(idArticle, currentImages.get(i), imgParam);
+	            }
+	        }
+
+	        // Ajout des nouvelles images (jusqu'à un maximum de 3)
+	        int maxNewImages = 3;
+	        for (int i = currentImages.size(); i < maxNewImages && i < newImgs.size(); i++) {
+	            String imgParam = request.getParameter("img" + i);
+	            if (imgParam != null && !imgParam.isEmpty()) {
+	                // Ajouter la nouvelle image dans la base de données
+	                addImage(idArticle, imgParam);
 	            }
 	        }
 
@@ -554,6 +579,90 @@ public class Connexion {
 	        }
 	    }
 	}
+
+	// ---------- Méthode pour supprimer une image de la base de données ----------
+	private void deleteImage(int idArticle, String imageName) throws SQLException {
+	    String deleteImg = "DELETE FROM image WHERE idArticle = ? AND img = ?";
+	    try (PreparedStatement psDeleteImg = cn.prepareStatement(deleteImg)) {
+	        psDeleteImg.setInt(1, idArticle);
+	        psDeleteImg.setString(2, imageName);
+	        psDeleteImg.executeUpdate();
+	    }
+	}
+
+	// ---------- Méthode pour mettre à jour le nom d'une image dans la base de données ----------
+	private void updateImage(int idArticle, String currentImage, String newImage) throws SQLException {
+	    String updateImg = "UPDATE image SET img = ? WHERE idArticle = ? AND img = ?";
+	    try (PreparedStatement psUpdateImg = cn.prepareStatement(updateImg)) {
+	    	String newImgName = generateImgName();
+	        psUpdateImg.setString(1, newImgName);
+	        psUpdateImg.setInt(2, idArticle);
+	        psUpdateImg.setString(3, currentImage);
+	        psUpdateImg.executeUpdate();
+	    }
+	}
+
+	// ---------- Méthode pour ajouter une nouvelle image dans la base de données ----------
+	private void addImage(int idArticle, String imageName) throws SQLException {
+	    // Vérifier la limite de 3 images
+	    int imageCount = getImageCount(idArticle);
+	    if (imageCount < 3) {
+	        String insertNewImg = "INSERT INTO image(name, img, idArticle) VALUES (?, ?, ?)";
+	        try (PreparedStatement psNewImg = cn.prepareStatement(insertNewImg)) {
+	        	String uniqueName = generateImgName();
+	            psNewImg.setString(1, uniqueName);
+	            psNewImg.setString(2, imageName);
+	            psNewImg.setInt(3, idArticle);
+	            psNewImg.executeUpdate();
+	        }
+	    } else {
+	        // Gérer la limite d'images ici (par exemple, en renvoyant une erreur)
+	        throw new SQLException("Limite maximale d'images atteinte");
+	    }
+	}
+	
+	/**
+	 * Génère un nom d'image unique en combinant un préfixe fixe avec une partie aléatoire.
+	 * Utilise un identifiant universellement unique (UUID) pour garantir l'unicité.
+	 * La longueur du nom généré est ajustée en utilisant seulement les premiers caractères de la partie aléatoire.
+	 *
+	 * @return Le nom d'image unique généré.
+	 */
+	private String generateImgName() {
+	    // Préfixe fixe pour le nom d'image
+	    String prefix = "new_image_";
+
+	    // Génération d'une partie aléatoire à partir d'un UUID
+	    String uniquePart = UUID.randomUUID().toString().substring(0, 8);
+
+	    // Retourne le nom d'image unique combinant le préfixe et la partie aléatoire
+	    return prefix + uniquePart;
+	}
+
+
+	// ---------- Méthode pour récupérer le nombre d'images actuelles pour un article ----------
+	private int getImageCount(int idArticle) throws SQLException {
+	    String countImages = "SELECT COUNT(*) FROM image WHERE idArticle = ?";
+	    try (PreparedStatement psCount = cn.prepareStatement(countImages)) {
+	        psCount.setInt(1, idArticle);
+	        try (ResultSet rs = psCount.executeQuery()) {
+	            if (rs.next()) {
+	                return rs.getInt(1);
+	            }
+	        }
+	    }
+	    return 0;
+	}
+	
+	// ---------- Méthode pour vérifier si on modifie ou non l'image pendant un update ----------
+	private boolean shouldDeleteImage(HttpServletRequest request, String imageName, List<String> currentImages) {
+	    // Récupérer l'index de l'image dans la liste actuelle
+	    int imageIndex = currentImages.indexOf(imageName);
+
+	    // Vérifier si le champ associé à l'image a été modifié
+	    String imgParam = request.getParameter("img" + imageIndex);
+	    return (imgParam != null && !imgParam.isEmpty());
+	}
 	
 	// ---------- Récupérer les données d'un article en particulier ----------
 	public Articles getArticle(int idArticle) {
@@ -572,8 +681,10 @@ public class Connexion {
 	        ps.setInt(1, idArticle);
 
 	        ResultSet rs = ps.executeQuery();
-	        if(rs.next()) {
-	        	List<String> images = Arrays.asList(rs.getString("imgArt").split(","));
+	        if (rs.next()) {
+	            String imgArt = rs.getString("imgArt");
+	            List<String> images = (imgArt != null) ? Arrays.asList(imgArt.split(",")) : new ArrayList<>();
+
 	            produit = new Articles(rs.getInt("idArticle"), rs.getString("designation"), rs.getInt("pu"),
 	                    rs.getInt("qty"), rs.getString("desiCat"), images);
 	        }
