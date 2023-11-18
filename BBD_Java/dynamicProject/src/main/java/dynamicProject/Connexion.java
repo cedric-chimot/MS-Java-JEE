@@ -3,10 +3,10 @@ package dynamicProject;
 import java.sql.*;
 import java.util.*;
 
-import org.hibernate.*;
-import org.hibernate.cfg.*;
 
-import jakarta.servlet.http.HttpServletRequest;
+//import org.hibernate.*;
+//import org.hibernate.cfg.*;
+
 
 public class Connexion {
 	// Création des variables
@@ -36,21 +36,22 @@ public class Connexion {
 		return cn;
 	}
 	
-	// ---------- Fermeture de la connexion ----------
-	public void fermerCnx() {
-        try {
-            if (rs != null) rs.close();
-            if (st != null) st.close();
-            if (cn != null) cn.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
+	private void fermerCnx(Connection cn) {
+	    try {
+	        if (cn != null && !cn.isClosed()) {
+	            // Ne définissez pas le mode auto-commit ici
+	            cn.close();
+	            System.out.println("Connexion fermée !");
+	        }
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+	}
 	
 	// ---------- Vérification du mot de passe ----------
 	public String verifCoordonnees(String login) {
 	    String mdp = null;
-	    myCnx();
+	    Connection cn = myCnx();
 	    sql = "SELECT pwd FROM compte WHERE login LIKE ?";
 	    try {
 	        PreparedStatement ps = cn.prepareStatement(sql);
@@ -89,7 +90,7 @@ public class Connexion {
 	public void insertCompte(String login, String pwd, String type, String fname, String lname, String adresse, String tel, int age, String sexe) {
 	    try {
 	        // Ouvrir la connexion
-	        myCnx();
+	    	Connection cn = myCnx();
 	        System.out.println("Connexion ouverte");
 
 	        // Utiliser une requête préparée pour l'insertion de l'utilisateur
@@ -134,14 +135,14 @@ public class Connexion {
 	        }
 	    } finally {
 	        // Fermer la connexion
-	        fermerCnx();
+	        fermerCnx(cn);
 	        System.out.println("Connexion fermée");
 	    }
 	}
 
 	// ---------- Récupération du type d'utilisateur ----------
 	public String recupType(String login) {
-		myCnx();
+		Connection cn = myCnx();
 	    String typeUser = null;
 	    String sql = "SELECT type FROM compte WHERE login = ?";
 	    try {
@@ -169,19 +170,19 @@ public class Connexion {
 		try {
 			rs = st.executeQuery(sql);
 			if(rs.next()) {
-				fermerCnx();
+				fermerCnx(cn);
 				return true;
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		fermerCnx();
+		fermerCnx(cn);
 		return false;
 	}
 	
 	// ---------- Selectionner la catégorie au moment de l'ajout produit ----------
 	public int selectCat(String designation) {
-	    myCnx();
+		Connection cn = myCnx();
 	    int idCat = 0;
 	    sql = "SELECT idCategorie FROM categorie WHERE designation LIKE ?";
 	    try (PreparedStatement ps = cn.prepareStatement(sql)) {
@@ -194,7 +195,7 @@ public class Connexion {
 	    } catch (SQLException e) {
 	        e.printStackTrace();
 	    } finally {
-	        fermerCnx();
+	        fermerCnx(cn);
 	    }
 	    return idCat;
 	}
@@ -227,14 +228,14 @@ public class Connexion {
 	                ex.printStackTrace();
 	            }
 	        } finally {
-	            fermerCnx();
+	            fermerCnx(cn);
 	        }
 	    }
 	}
 	
 	// ---------- Tableau pour récupérer la liste des catégories ----------
 	public List<String> listCat() {
-		myCnx();
+		Connection cn = myCnx();
 		List<String> categories = new ArrayList<String>();
 		String sql = "SELECT * FROM `categorie`";
 		try {
@@ -260,13 +261,13 @@ public class Connexion {
 		try {
 			rs = st.executeQuery(sql);
 			if(rs.next()) {
-				fermerCnx();
+				fermerCnx(cn);
 				return true;
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		fermerCnx();
+		fermerCnx(cn);
 		return false;
 	}
 	
@@ -361,7 +362,7 @@ public class Connexion {
 	// ---------- Ajouter un nouveau produit ----------
 	public void ajoutProd(String name, List<String> img, String designation, int pu, int qty, int idCategorie) {
 	    try {
-	        myCnx();
+	    	Connection cn = myCnx();
 
 	        // Insertion dans la table article
 	        sql = "INSERT INTO article(designation,pu,qty,idCategorie) VALUES(?,?,?,?)";
@@ -405,7 +406,7 @@ public class Connexion {
 		        }
 		    }
 		    // Fermeture de la connexion
-	        fermerCnx();
+	        fermerCnx(cn);
 		}
 	}
 	
@@ -416,7 +417,7 @@ public class Connexion {
 	
 	// ---------- Méthode articles() pour récupérer la liste des articles par catégories ----------
 	public List<Articles> articles(String categorySearch) {
-	    myCnx();
+		Connection cn = myCnx();
 	    List<Articles> produits = new ArrayList<>();
 
 	    // On utilise une requête différente si une catégorie de recherche est spécifiée
@@ -481,7 +482,7 @@ public class Connexion {
 	
 	// ---------- Récupérer la liste d'images ----------
 	public List<String> recupImages(int idArticle) {
-	    myCnx();
+	    Connection cn = myCnx();
 	    List<String> currentImages = new ArrayList<>();
 
 	    String listImages = "SELECT img FROM image WHERE idArticle = ?";
@@ -511,116 +512,99 @@ public class Connexion {
 	    return currentImages;
 	}
 	
-	// ---------- Modifier un article ----------
-	public void updateProd(int idArticle, List<String> currentImages, int newPu, int newQty, List<String> newImgs, HttpServletRequest request, boolean isUpdate) {
-	    myCnx();
-	    try {
-	        // Début de la transaction
-	        cn.setAutoCommit(false);
-
-	        // Requête pour modifier l'article
-	        String updateArt = "UPDATE article SET pu = ?, qty = ? WHERE idArticle = ?";
-	        try (PreparedStatement psArt = cn.prepareStatement(updateArt)) {
-	            psArt.setInt(1, newPu);
-	            psArt.setInt(2, newQty);
-	            psArt.setInt(3, idArticle);
-	            psArt.executeUpdate();
-	        }
-
-	        // Suppression des images qui ne sont plus présentes dans le formulaire
-	        for (String currentImage : currentImages) {
-	            if (!newImgs.contains(currentImage)) {
-	                // Vérifier si l'image actuelle doit être supprimée ou conservée
-	                if (shouldDeleteImage(request, currentImage, currentImages)) {
-	                    // Supprimer l'image de la base de données
-	                    deleteImage(idArticle, currentImage);
-	                }
-	            }
-	        }
-
-	        // Mise à jour des images existantes
-	        for (int i = 0; i < currentImages.size() && i < newImgs.size(); i++) {
-	            String imgParam = request.getParameter("img" + i);
-	            if (imgParam != null && !imgParam.isEmpty()) {
-	                // Mettre à jour l'image dans la base de données
-	                updateImage(idArticle, currentImages.get(i), imgParam);
-	            }
-	        }
-
-	        // Ajout des nouvelles images (jusqu'à un maximum de 3)
-	        int maxNewImages = 3;
-	        for (int i = currentImages.size(); i < maxNewImages && i < newImgs.size(); i++) {
-	            String imgParam = request.getParameter("img" + i);
-	            if (imgParam != null && !imgParam.isEmpty()) {
-	                // Ajouter la nouvelle image dans la base de données
-	                addImage(idArticle, imgParam);
-	            }
-	        }
-
-	        // Validation de la transaction
-	        cn.commit();
-
-	    } catch (SQLException e) {
-	        // En cas d'erreur, annulation de la transaction
-	        try {
-	            cn.rollback();
-	        } catch (SQLException rollbackException) {
-	            rollbackException.printStackTrace();
-	        }
-	        e.printStackTrace();
-	    } finally {
-	        try {
-	            // Rétablissement du mode auto-commit
-	            cn.setAutoCommit(true);
-	            // Fermeture de la connexion
-	            cn.close();
-	        } catch (SQLException closeException) {
-	            closeException.printStackTrace();
-	        }
-	    }
-	}
-
-	// ---------- Méthode pour supprimer une image de la base de données ----------
-	private void deleteImage(int idArticle, String imageName) throws SQLException {
-	    String deleteImg = "DELETE FROM image WHERE idArticle = ? AND img = ?";
-	    try (PreparedStatement psDeleteImg = cn.prepareStatement(deleteImg)) {
-	        psDeleteImg.setInt(1, idArticle);
-	        psDeleteImg.setString(2, imageName);
-	        psDeleteImg.executeUpdate();
-	    }
-	}
-
-	// ---------- Méthode pour mettre à jour le nom d'une image dans la base de données ----------
-	private void updateImage(int idArticle, String currentImage, String newImage) throws SQLException {
-	    String updateImg = "UPDATE image SET img = ? WHERE idArticle = ? AND img = ?";
-	    try (PreparedStatement psUpdateImg = cn.prepareStatement(updateImg)) {
-	    	String newImgName = generateImgName();
-	        psUpdateImg.setString(1, newImgName);
-	        psUpdateImg.setInt(2, idArticle);
-	        psUpdateImg.setString(3, currentImage);
-	        psUpdateImg.executeUpdate();
-	    }
-	}
-
-	// ---------- Méthode pour ajouter une nouvelle image dans la base de données ----------
-	private void addImage(int idArticle, String imageName) throws SQLException {
-	    // Vérifier la limite de 3 images
-	    int imageCount = getImageCount(idArticle);
-	    if (imageCount < 3) {
-	        String insertNewImg = "INSERT INTO image(name, img, idArticle) VALUES (?, ?, ?)";
-	        try (PreparedStatement psNewImg = cn.prepareStatement(insertNewImg)) {
-	        	String uniqueName = generateImgName();
-	            psNewImg.setString(1, uniqueName);
-	            psNewImg.setString(2, imageName);
-	            psNewImg.setInt(3, idArticle);
-	            psNewImg.executeUpdate();
-	        }
-	    } else {
-	        // Gérer la limite d'images ici (par exemple, en renvoyant une erreur)
-	        throw new SQLException("Limite maximale d'images atteinte");
-	    }
-	}
+	// ---------- Nouvelle méthode pour obtenir une connexion à la base de données ----------
+    private Connection getDatabaseConnection() throws SQLException {
+        Connection cn = myCnx();
+        cn.setAutoCommit(false);
+        return cn;
+    }
 	
+    // ---------- Modifier un article ----------
+    public void updateProd(int idArticle, List<String> currentImages, int newPu, int newQty, String newImgModify, String newImgAdd) {
+        Connection cn = null;
+        try {
+            cn = getDatabaseConnection();
+            // Début de la transaction
+            cn.setAutoCommit(false);
+
+            // Requête pour modifier l'article
+            String updateArt = "UPDATE article SET pu = ?, qty = ? WHERE idArticle = ?";
+            try (PreparedStatement psArt = cn.prepareStatement(updateArt)) {
+                psArt.setInt(1, newPu);
+                psArt.setInt(2, newQty);
+                psArt.setInt(3, idArticle);
+                int rowsUpdated = psArt.executeUpdate();
+                System.out.println(rowsUpdated + " lignes mises à jour dans la table article.");
+            }
+
+            // Mise à jour de l'image la plus ancienne (s'il y en a au moins une)
+            if (newImgModify != null && !newImgModify.isEmpty() && !currentImages.isEmpty()) {
+                String oldestImageName = currentImages.get(0);
+                updateImage(cn, idArticle, oldestImageName, newImgModify);
+                System.out.println("Image mise à jour : " + oldestImageName);
+            } else if (newImgAdd != null && !newImgAdd.isEmpty()) {
+                addImage(cn, idArticle, newImgAdd);
+                System.out.println("Nouvelle image ajoutée : " + newImgAdd);
+            }
+
+            // Validation de la transaction
+            cn.commit();
+
+        } catch (Exception e) {
+            // En cas d'erreur, annulation de la transaction
+            try {
+                if (cn != null) {
+                    cn.rollback();
+                    System.out.println("Rollback effectué en raison de l'erreur : " + e.getMessage());
+                }
+            } catch (SQLException rollbackException) {
+                rollbackException.printStackTrace();
+            }
+            e.printStackTrace();
+        } finally {
+            try {
+                // Rétablissement du mode auto-commit
+                if (cn != null) {
+                    cn.setAutoCommit(true);
+                    // Fermeture de la connexion
+                    cn.close();
+                }
+            } catch (SQLException closeException) {
+                closeException.printStackTrace();
+            }
+        }
+    }
+  // Méthode pour mettre à jour le nom d'une image dans la base de données
+    private void updateImage(Connection cn, int idArticle, String currentImage, String newImage) throws SQLException {
+        String updateImg = "UPDATE image SET img = ? WHERE idArticle = ? AND img = ?";
+        try (PreparedStatement psUpdateImg = cn.prepareStatement(updateImg)) {
+            psUpdateImg.setString(1, newImage);
+            psUpdateImg.setInt(2, idArticle);
+            psUpdateImg.setString(3, currentImage);
+            int rowsUpdated = psUpdateImg.executeUpdate();
+            System.out.println(rowsUpdated + " lignes mises à jour dans la table image.");
+        }
+    }
+
+    // Méthode pour ajouter une nouvelle image dans la base de données
+    private void addImage(Connection cn, int idArticle, String imageName) throws SQLException {
+        // Vérifier la limite de 3 images
+        int imageCount = getImageCount(cn, idArticle);
+        if (imageCount < 3) {
+            String insertNewImg = "INSERT INTO image(name, img, idArticle) VALUES (?, ?, ?)";
+            try (PreparedStatement psNewImg = cn.prepareStatement(insertNewImg)) {
+                String uniqueName = generateImgName();
+                psNewImg.setString(1, uniqueName);
+                psNewImg.setString(2, imageName);
+                psNewImg.setInt(3, idArticle);
+                psNewImg.executeUpdate();
+            }
+        } else {
+            // Gérer la limite d'images ici (par exemple, en renvoyant une erreur)
+            throw new SQLException("Limite maximale d'images atteinte");
+        }
+    }
+
 	/**
 	 * Génère un nom d'image unique en combinant un préfixe fixe avec une partie aléatoire.
 	 * Utilise un identifiant universellement unique (UUID) pour garantir l'unicité.
@@ -641,7 +625,7 @@ public class Connexion {
 
 
 	// ---------- Méthode pour récupérer le nombre d'images actuelles pour un article ----------
-	private int getImageCount(int idArticle) throws SQLException {
+	private int getImageCount(Connection cn, int idArticle) throws SQLException {
 	    String countImages = "SELECT COUNT(*) FROM image WHERE idArticle = ?";
 	    try (PreparedStatement psCount = cn.prepareStatement(countImages)) {
 	        psCount.setInt(1, idArticle);
@@ -653,20 +637,10 @@ public class Connexion {
 	    }
 	    return 0;
 	}
-	
-	// ---------- Méthode pour vérifier si on modifie ou non l'image pendant un update ----------
-	private boolean shouldDeleteImage(HttpServletRequest request, String imageName, List<String> currentImages) {
-	    // Récupérer l'index de l'image dans la liste actuelle
-	    int imageIndex = currentImages.indexOf(imageName);
 
-	    // Vérifier si le champ associé à l'image a été modifié
-	    String imgParam = request.getParameter("img" + imageIndex);
-	    return (imgParam != null && !imgParam.isEmpty());
-	}
-	
 	// ---------- Récupérer les données d'un article en particulier ----------
 	public Articles getArticle(int idArticle) {
-	    myCnx();
+	    Connection cn = null;
 	    Articles produit = null;
 
 	    String sql = "SELECT a.*, "
@@ -677,6 +651,7 @@ public class Connexion {
 	            + "WHERE a.idArticle = ?";
 
 	    try {
+	    	cn = getDatabaseConnection();
 	        PreparedStatement ps = cn.prepareStatement(sql);
 	        ps.setInt(1, idArticle);
 
@@ -693,13 +668,23 @@ public class Connexion {
 	        ps.close();
 	    } catch (SQLException e) {
 	        e.printStackTrace();
-	    }
+	    } finally {
+	        // Fermeture de la connexion dans le bloc finally
+	        if (cn != null) {
+	            try {
+	                cn.close();
+	                System.out.println("Connexion fermée !");
+	            } catch (SQLException e) {
+	                e.printStackTrace();
+	            }
+	        }
+	     }
 
 	    return produit;
 	}
 	
 	// ---------- Ajouter un nouveau produit Hibernate ----------
-	public void ajoutProdHibernate(Article a) {
+	/*public void ajoutProdHibernate(Article a) {
 	    Configuration configuration = new Configuration().configure();
 	    SessionFactory sf = configuration.buildSessionFactory();
 	    Session session = sf.openSession();
@@ -708,7 +693,7 @@ public class Connexion {
 	    tr.commit();
 	    session.close();
 	    sf.close();
-	}
+	}*/
 		
 	/*public static void main(String[] args) throws SQLException {
 		// Récupérer l'objet Connection
