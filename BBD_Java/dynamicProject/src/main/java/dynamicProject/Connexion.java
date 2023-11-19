@@ -3,6 +3,8 @@ package dynamicProject;
 import java.sql.*;
 import java.util.*;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 
 //import org.hibernate.*;
 //import org.hibernate.cfg.*;
@@ -316,47 +318,52 @@ public class Connexion {
 	
 	// ---------- Ajouter les images avec l'article ----------
 	public void ajoutImg(List<String> images) {
-		try {
-			// Récupérer la designation du dernier article ajouté
-			String designation = recupDesi();
-			
-			// Récupération de l'idArticle
-			int idArticle = recupIdArticle();
-			
-			// Requête pour ajouter une nouvelle image
-	        sql = "INSERT INTO image(name,img,idArticle) VALUES(?,?,?)";
-	        ps = cn.prepareStatement(sql);
+	    try {            
+	        // Récupération de l'idArticle
+	        int idArticle = recupIdArticle();
 	        
-	        // Boucle pour récupérer plusieurs images
-	        for(String img : images) {
-	        	// Utilisation de la designation pour construire le name
-				String uniqueName = designation + "_image_" + imgId;
-		        ps.setString(1, uniqueName);
-		        ps.setString(2, img);
-		        ps.setInt(3, idArticle);
-		        
-		        System.out.println(uniqueName);
-		        System.out.println(img);
-		        System.out.println(idArticle);
+	        // Vérifier le nombre actuel d'images
+	        int currentImageCount = getImageCount(cn, idArticle);
+	        int remainingImageSlots = 3 - currentImageCount; // 3 est la limite souhaitée
 
-		        // Exécution de l'insertion
-		        ps.executeUpdate();
-		        
-		        // Incrémentation de imgId
-		        imgId++;
+	        if (remainingImageSlots > 0) {
+	            // Requête pour ajouter une nouvelle image
+	            sql = "INSERT INTO image(name,img,idArticle) VALUES(?,?,?)";
+	            ps = cn.prepareStatement(sql);
+
+	            // Boucle pour récupérer plusieurs images (au maximum, la limite restante)
+	            for (int i = 0; i < Math.min(remainingImageSlots, images.size()); i++) {
+	                // Utilisation de la designation pour construire le name
+	                String uniqueName = generateImgName();
+	                ps.setString(1, uniqueName);
+	                ps.setString(2, images.get(i));
+	                ps.setInt(3, idArticle);
+
+	                System.out.println(uniqueName);
+	                System.out.println(images.get(i));
+	                System.out.println(idArticle);
+
+	                // Exécution de l'insertion
+	                ps.executeUpdate();
+	                
+	                // Incrémentation de imgId
+	                imgId++;
+	            }
+	        } else {
+	            System.out.println("Limite maximale d'images atteinte. Aucune nouvelle image ajoutée.");
 	        }
-		} catch (SQLException e) {
+	    } catch (SQLException e) {
 	        e.printStackTrace();
 	    } finally {
-		    // Fermer le PreparedStatement
-		    if (ps != null) {
-		        try {
-		            ps.close();
-		        } catch (SQLException e) {
-		            e.printStackTrace();
-		        }
-		    }
-		}
+	        // Fermer le PreparedStatement
+	        if (ps != null) {
+	            try {
+	                ps.close();
+	            } catch (SQLException e) {
+	                e.printStackTrace();
+	            }
+	        }
+	    }
 	}
 	
 	// ---------- Ajouter un nouveau produit ----------
@@ -520,7 +527,7 @@ public class Connexion {
     }
 	
     // ---------- Modifier un article ----------
-    public void updateProd(int idArticle, List<String> currentImages, int newPu, int newQty, String newImgModify, String newImgAdd) {
+    public void updateProd(HttpServletRequest request, int idArticle, List<String> currentImages, int newPu, int newQty, String newImgModify, String newImgAdd, String selectedImage) {
         Connection cn = null;
         try {
             cn = getDatabaseConnection();
@@ -537,15 +544,52 @@ public class Connexion {
                 System.out.println(rowsUpdated + " lignes mises à jour dans la table article.");
             }
 
-            // Mise à jour de l'image la plus ancienne (s'il y en a au moins une)
-            if (newImgModify != null && !newImgModify.isEmpty() && !currentImages.isEmpty()) {
-                String oldestImageName = currentImages.get(0);
-                updateImage(cn, idArticle, oldestImageName, newImgModify);
-                System.out.println("Image mise à jour : " + oldestImageName);
-            } else if (newImgAdd != null && !newImgAdd.isEmpty()) {
-                addImage(cn, idArticle, newImgAdd);
-                System.out.println("Nouvelle image ajoutée : " + newImgAdd);
+            // Mise à jour de l'image sélectionnée
+            if (selectedImage != null && !selectedImage.isEmpty() && newImgModify != null && !newImgModify.isEmpty()) {
+                int imageId = getImageId(cn, idArticle, selectedImage);
+
+                if (imageId != -1) {
+                    updateImage(cn, imageId, newImgModify);
+                    System.out.println("Image mise à jour : " + selectedImage + " vers " + newImgModify);
+                } else {
+                    System.out.println("Impossible de trouver l'ID de l'image : " + selectedImage);
+                }
             }
+
+            // Obtenir tous les noms des nouvelles images pour la modification
+            String[] newImageNames = request.getParameterValues("newImgModify");
+            System.out.println("Noms des nouvelles images à modifier : " + Arrays.toString(newImageNames));
+
+            // Mise à jour des autres images une par une
+            System.out.println("Images actuelles avant la boucle : " + currentImages);
+            List<String> updatedImages = new ArrayList<>(currentImages);
+
+            if (newImageNames != null && newImageNames.length > 0 && !currentImages.isEmpty()) {
+                for (int i = 0; i < Math.min(currentImages.size(), newImageNames.length); i++) {
+                    String currentImage = currentImages.get(i);
+
+                    // Vérifier si l'image actuelle est celle déjà mise à jour
+                    if (!currentImage.equals(selectedImage)) {
+                        String newImageName = newImageNames[i];
+
+                        // Obtenez l'ID de l'image
+                        int imageId = getImageId(cn, idArticle, currentImage);
+
+                        if (imageId != -1) {
+                            updateImage(cn, imageId, newImageName);
+                            System.out.println("Image mise à jour : " + currentImage + " vers " + newImageName);
+
+                            // Mise à jour de la liste après chaque modification
+                            updatedImages = recupImages(idArticle);
+                        } else {
+                            System.out.println("Impossible de trouver l'ID de l'image : " + currentImage);
+                        }
+                    }
+                }
+            }
+
+            // À ce stade, updatedImages contient la liste des images mise à jour
+            System.out.println("Images actuelles après la boucle : " + updatedImages);
 
             // Validation de la transaction
             cn.commit();
@@ -574,34 +618,53 @@ public class Connexion {
             }
         }
     }
-  // Méthode pour mettre à jour le nom d'une image dans la base de données
-    private void updateImage(Connection cn, int idArticle, String currentImage, String newImage) throws SQLException {
-        String updateImg = "UPDATE image SET img = ? WHERE idArticle = ? AND img = ?";
-        try (PreparedStatement psUpdateImg = cn.prepareStatement(updateImg)) {
-            psUpdateImg.setString(1, newImage);
-            psUpdateImg.setInt(2, idArticle);
-            psUpdateImg.setString(3, currentImage);
-            int rowsUpdated = psUpdateImg.executeUpdate();
-            System.out.println(rowsUpdated + " lignes mises à jour dans la table image.");
+
+    // ---------- Récupération de l'id d'une image ----------
+    /**
+     * Récupère l'identifiant d'une image spécifique associée à un article.
+     *
+     * @param cn          La connexion à la base de données.
+     * @param idArticle   L'identifiant de l'article.
+     * @param imageName   Le nom de l'image dont on souhaite obtenir l'identifiant.
+     * @return L'identifiant de l'image s'il est trouvé, sinon -1.
+     */
+    private int getImageId(Connection cn, int idArticle, String imageName) {
+        // Requête SQL pour récupérer l'identifiant de l'image
+        String getImageId = "SELECT id FROM image WHERE idArticle = ? AND img = ?";
+        
+        try (PreparedStatement ps = cn.prepareStatement(getImageId)) {
+            // Paramètres de la requête
+            ps.setInt(1, idArticle);
+            ps.setString(2, imageName);
+            
+            // Exécution de la requête et récupération du résultat
+            ResultSet rs = ps.executeQuery();
+            
+            if (rs.next()) {
+                // Si une ligne est trouvée, retourne l'identifiant de l'image
+                return rs.getInt("id");
+            } else {
+                // Si aucune ligne n'est trouvée, affiche un message d'erreur
+                System.out.println("Impossible de trouver l'ID de l'image : " + imageName);
+            }
+        } catch (SQLException e) {
+            // Gestion des exceptions SQL, affiche la trace de la pile
+            e.printStackTrace();
         }
+        
+        // Si une erreur survient, retourne -1
+        return -1;
     }
 
-    // Méthode pour ajouter une nouvelle image dans la base de données
-    private void addImage(Connection cn, int idArticle, String imageName) throws SQLException {
-        // Vérifier la limite de 3 images
-        int imageCount = getImageCount(cn, idArticle);
-        if (imageCount < 3) {
-            String insertNewImg = "INSERT INTO image(name, img, idArticle) VALUES (?, ?, ?)";
-            try (PreparedStatement psNewImg = cn.prepareStatement(insertNewImg)) {
-                String uniqueName = generateImgName();
-                psNewImg.setString(1, uniqueName);
-                psNewImg.setString(2, imageName);
-                psNewImg.setInt(3, idArticle);
-                psNewImg.executeUpdate();
-            }
-        } else {
-            // Gérer la limite d'images ici (par exemple, en renvoyant une erreur)
-            throw new SQLException("Limite maximale d'images atteinte");
+    
+    // ---------- Méthode pour mettre à jour une image dans la base de données ----------
+    private void updateImage(Connection cn, int imageId, String newImageName) throws SQLException {
+        String updateImage = "UPDATE image SET img = ? WHERE id = ?";
+        try (PreparedStatement psImage = cn.prepareStatement(updateImage)) {
+            psImage.setString(1, newImageName);
+            psImage.setInt(2, imageId);
+            int rowsUpdated = psImage.executeUpdate();
+            System.out.println(rowsUpdated + " lignes mises à jour dans la table image.");
         }
     }
 

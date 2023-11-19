@@ -48,18 +48,21 @@
 	            <!-- Input caché pour récupérer l'id du produit -->
 	            <input type="hidden" id="idArticle" name="idArticle" value="<%= request.getParameter("idArticle") %>" readonly>
 	            <div class="form-group mt-2">
-	                <label class="form-label">Image(s) actuelle(s) :</label>
+	            	<label class="form-label">Images actuelles :</label>
 	                <%
-	                    int idArticleToModify = Integer.parseInt(request.getParameter("idArticle"));
-	                    List<String> currentImages = c.recupImages(idArticleToModify);
-	
-	                    for (String imageName : currentImages) {
-	                %>
-	                        <img src="images/<%= imageName %>" alt="Image actuelle du produit" width="100">
-	                        <input type="hidden" name="currentImages[]" value="<%= imageName %>">
-	                <%
-	                    }
-	                %>
+						int idArticleToModify = Integer.parseInt(request.getParameter("idArticle"));
+						List<String> currentImages = c.recupImages(idArticleToModify);
+						
+						for (String imageName : currentImages) {
+						%>
+						    <div class="form-group mt-2 text-center">
+						        <img src="images/<%= imageName %>" alt="Image actuelle du produit" width="100">
+						        <input class="form-check-input" type="radio" name="selectedImage" value="<%= imageName %>">
+						    </div>
+					<%
+						}
+					%>
+
 	            </div>
 	            <div class="form-group mt-2">
 	                <label class="form-label">Désignation :</label>
@@ -80,9 +83,9 @@
 	            </div>
 	            <!-- Champ pour modifier une image existante -->
 	            <div class="form-group mt-2">
-	                <label class="form-label">Modifier une image existante :</label>
-	                <input type="file" id="newImgModify" name="newImgModify" class="form-control" size="255">
-	            </div>
+				    <label class="form-label">Modifier une image existante :</label>
+				    <input type="file" id="newImgModify" name="newImgModify" class="form-control" size="255">
+				</div>
 	        </div>
 	    </fieldset>
 	    <div class="container text-center">

@@ -344,27 +344,18 @@ public class MyServlet extends HttpServlet {
 	            HttpSession session = request.getSession();
 	            boolean erreur = false;
 
-	            // Condition pour vérifier quel input est rempli
-	            String submitType = request.getParameter("submitType");
+	            // Nouveau paramètre pour le bouton radio sélectionné
+	            final String SELECTED_IMAGE_PARAM = "selectedImage";
+	            String selectedImage = request.getParameter(SELECTED_IMAGE_PARAM);
 
-	            if ("modify".equals(submitType)) {
-	                // L'utilisateur a cliqué sur le bouton "Modifier" du formulaire de modification
-	                // Procéder à la modification de l'image la plus ancienne
-	                if (!currentImages.isEmpty() && newImgModify != null && !newImgModify.isEmpty()) {
-	                    String oldestImageName = currentImages.get(0); // On suppose que la première image est la plus ancienne
-	                    co.updateProd(idArticle, currentImages, newPu, newQty, newImgModify, newImgAdd);
-	                    System.out.println("Image la plus ancienne mise à jour : " + oldestImageName);
-	                }
+	            // Validation de la valeur du paramètre "selectedImage"
+	            if (selectedImage != null && !selectedImage.isEmpty()) {
+	                // L'utilisateur a sélectionné une image à modifier
+	                co.updateProd(request, idArticle, currentImages, newPu, newQty, newImgModify, newImgAdd, selectedImage);
+	                System.out.println("Image sélectionnée mise à jour : " + selectedImage);
 	            } else {
-	                // L'utilisateur a cliqué sur le bouton "Modifier/Ajouter" du formulaire
-	                // Si le champ newImgAdd est rempli, ajoutez cette nouvelle image
-	                if (newImgAdd != null && !newImgAdd.isEmpty()) {
-	                    List<String> newImgsAdd = new ArrayList<>();
-	                    newImgsAdd.add(newImgAdd);
-	                    co.updateProd(idArticle, currentImages, newPu, newQty, newImgModify, newImgAdd);
-	                } else {
-	                	co.updateProd(idArticle, currentImages, newPu, newQty, newImgModify, newImgAdd);
-	                }
+	                // Aucune image sélectionnée, faites le traitement approprié
+	                // Vous pouvez ajouter une logique ici pour gérer le cas où aucune image n'est sélectionnée.
 	            }
 
 	            // Récupération des données mises à jour du produit
