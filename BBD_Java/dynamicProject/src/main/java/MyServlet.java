@@ -334,7 +334,7 @@ public class MyServlet extends HttpServlet {
 	            String newImgModify = request.getParameter("newImgModify");
 	            String newImgAdd = request.getParameter("newImgAdd");
 
-	            // Ajoutez des vérifications pour éviter les chaînes nulles ou vides
+	            // Ajout de vérifications pour éviter les chaînes nulles ou vides
 	            String newPuParam = request.getParameter("newPu");
 	            int newPu = (newPuParam != null && !newPuParam.isEmpty()) ? Integer.parseInt(newPuParam) : 0;
 
@@ -348,15 +348,8 @@ public class MyServlet extends HttpServlet {
 	            final String SELECTED_IMAGE_PARAM = "selectedImage";
 	            String selectedImage = request.getParameter(SELECTED_IMAGE_PARAM);
 
-	            // Validation de la valeur du paramètre "selectedImage"
-	            if (selectedImage != null && !selectedImage.isEmpty()) {
-	                // L'utilisateur a sélectionné une image à modifier
-	                co.updateProd(request, idArticle, currentImages, newPu, newQty, newImgModify, newImgAdd, selectedImage);
-	                System.out.println("Image sélectionnée mise à jour : " + selectedImage);
-	            } else {
-	                // Aucune image sélectionnée, faites le traitement approprié
-	                // Vous pouvez ajouter une logique ici pour gérer le cas où aucune image n'est sélectionnée.
-	            }
+	            // Mise à jour du produit, que l'image soit sélectionnée ou non
+	            co.updateProd(request, idArticle, currentImages, newPu, newQty, newImgModify, newImgAdd, selectedImage);
 
 	            // Récupération des données mises à jour du produit
 	            Articles produitModif = co.getArticle(idArticle);

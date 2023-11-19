@@ -526,20 +526,26 @@ public class Connexion {
         return cn;
     }
 	
-    // ---------- Modifier un article ----------
+ // ---------- Modifier un article ----------
     public void updateProd(HttpServletRequest request, int idArticle, List<String> currentImages, int newPu, int newQty, String newImgModify, String newImgAdd, String selectedImage) {
         Connection cn = null;
         try {
+            // Établir une connexion à la base de données
             cn = getDatabaseConnection();
+            
             // Début de la transaction
             cn.setAutoCommit(false);
 
             // Requête pour modifier l'article
+            // Modifie les paramètres même si l'image n'est pas modifiée
             String updateArt = "UPDATE article SET pu = ?, qty = ? WHERE idArticle = ?";
             try (PreparedStatement psArt = cn.prepareStatement(updateArt)) {
+                // Paramètres de la requête SQL
                 psArt.setInt(1, newPu);
                 psArt.setInt(2, newQty);
                 psArt.setInt(3, idArticle);
+                
+                // Exécution de la mise à jour de l'article
                 int rowsUpdated = psArt.executeUpdate();
                 System.out.println(rowsUpdated + " lignes mises à jour dans la table article.");
             }
@@ -567,23 +573,20 @@ public class Connexion {
             if (newImageNames != null && newImageNames.length > 0 && !currentImages.isEmpty()) {
                 for (int i = 0; i < Math.min(currentImages.size(), newImageNames.length); i++) {
                     String currentImage = currentImages.get(i);
+                    String newImageName = newImageNames[i];
 
-                    // Vérifier si l'image actuelle est celle déjà mise à jour
-                    if (!currentImage.equals(selectedImage)) {
-                        String newImageName = newImageNames[i];
+                    // Obtenez l'ID de l'image
+                    int imageId = getImageId(cn, idArticle, currentImage);
 
-                        // Obtenez l'ID de l'image
-                        int imageId = getImageId(cn, idArticle, currentImage);
+                    if (imageId != -1) {
+                        // Mise à jour de l'image
+                        updateImage(cn, imageId, newImageName);
+                        System.out.println("Image mise à jour : " + currentImage + " vers " + newImageName);
 
-                        if (imageId != -1) {
-                            updateImage(cn, imageId, newImageName);
-                            System.out.println("Image mise à jour : " + currentImage + " vers " + newImageName);
-
-                            // Mise à jour de la liste après chaque modification
-                            updatedImages = recupImages(idArticle);
-                        } else {
-                            System.out.println("Impossible de trouver l'ID de l'image : " + currentImage);
-                        }
+                        // Mise à jour de la liste après chaque modification
+                        updatedImages = recupImages(idArticle);
+                    } else {
+                        System.out.println("Impossible de trouver l'ID de l'image : " + currentImage);
                     }
                 }
             }
