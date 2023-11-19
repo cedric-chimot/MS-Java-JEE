@@ -526,7 +526,7 @@ public class Connexion {
         return cn;
     }
 	
- // ---------- Modifier un article ----------
+    // ---------- Modifier un article ----------
     public void updateProd(HttpServletRequest request, int idArticle, List<String> currentImages, int newPu, int newQty, String newImgModify, String newImgAdd, String selectedImage) {
         Connection cn = null;
         try {
@@ -570,22 +570,28 @@ public class Connexion {
             System.out.println("Images actuelles avant la boucle : " + currentImages);
             List<String> updatedImages = new ArrayList<>(currentImages);
 
+            // Vérifier s'il y a de nouvelles images à modifier et si la liste des images actuelles n'est pas vide
             if (newImageNames != null && newImageNames.length > 0 && !currentImages.isEmpty()) {
+                // Parcourir les images actuelles et les nouveaux noms d'images (jusqu'au minimum des deux tailles)
                 for (int i = 0; i < Math.min(currentImages.size(), newImageNames.length); i++) {
+                    // Obtenir le nom de l'image actuelle
                     String currentImage = currentImages.get(i);
+                    // Obtenir le nouveau nom d'image correspondant
                     String newImageName = newImageNames[i];
 
-                    // Obtenez l'ID de l'image
+                    // Obtenir l'ID de l'image actuelle dans la base de données
                     int imageId = getImageId(cn, idArticle, currentImage);
 
+                    // Vérifier si l'ID de l'image a été trouvé
                     if (imageId != -1) {
-                        // Mise à jour de l'image
+                        // Mise à jour de l'image dans la base de données
                         updateImage(cn, imageId, newImageName);
                         System.out.println("Image mise à jour : " + currentImage + " vers " + newImageName);
 
-                        // Mise à jour de la liste après chaque modification
+                        // Mise à jour de la liste des images après chaque modification
                         updatedImages = recupImages(idArticle);
                     } else {
+                        // Afficher un message d'erreur si l'ID de l'image n'a pas été trouvé
                         System.out.println("Impossible de trouver l'ID de l'image : " + currentImage);
                     }
                 }
@@ -658,18 +664,25 @@ public class Connexion {
         // Si une erreur survient, retourne -1
         return -1;
     }
-
     
-    // ---------- Méthode pour mettre à jour une image dans la base de données ----------
-    private void updateImage(Connection cn, int imageId, String newImageName) throws SQLException {
-        String updateImage = "UPDATE image SET img = ? WHERE id = ?";
-        try (PreparedStatement psImage = cn.prepareStatement(updateImage)) {
-            psImage.setString(1, newImageName);
-            psImage.setInt(2, imageId);
-            int rowsUpdated = psImage.executeUpdate();
-            System.out.println(rowsUpdated + " lignes mises à jour dans la table image.");
-        }
-    }
+	// ---------- Méthode pour mettre à jour une image dans la base de données ----------
+    
+	// Cette méthode met à jour le nom d'une image dans la base de données en fonction de son identifiant.
+	// Elle prend en paramètre une connexion à la base de données (cn), l'identifiant de l'image (imageId),
+	// et le nouveau nom de l'image (newImageName) que l'on souhaite enregistrer.
+	private void updateImage(Connection cn, int imageId, String newImageName) throws SQLException {
+		// Requête SQL pour mettre à jour le nom de l'image dans la table 'image'
+		String updateImage = "UPDATE image SET img = ? WHERE id = ?";
+		try (PreparedStatement psImage = cn.prepareStatement(updateImage)) {
+		// Définition des valeurs dans la requête préparée
+		psImage.setString(1, newImageName);
+		psImage.setInt(2, imageId);
+			
+		// Exécution de la requête de mise à jour
+		int rowsUpdated = psImage.executeUpdate();
+		System.out.println(rowsUpdated + " lignes mises à jour dans la table image.");
+		}
+	}
 
 	/**
 	 * Génère un nom d'image unique en combinant un préfixe fixe avec une partie aléatoire.
@@ -689,26 +702,39 @@ public class Connexion {
 	    return prefix + uniquePart;
 	}
 
-
 	// ---------- Méthode pour récupérer le nombre d'images actuelles pour un article ----------
+	
+	// Cette méthode récupère le nombre d'images associées à un article spécifique dans la base de données.
+	// Elle prend en paramètre une connexion à la base de données (cn) et l'identifiant de l'article (idArticle).
+	// La requête SQL compte le nombre d'images enregistrées pour cet article.
+	// La méthode renvoie le nombre d'images trouvé ou 0 si aucune image n'est associée à l'article.
 	private int getImageCount(Connection cn, int idArticle) throws SQLException {
+	    // Requête SQL pour compter le nombre d'images associées à l'article
 	    String countImages = "SELECT COUNT(*) FROM image WHERE idArticle = ?";
 	    try (PreparedStatement psCount = cn.prepareStatement(countImages)) {
 	        psCount.setInt(1, idArticle);
 	        try (ResultSet rs = psCount.executeQuery()) {
+	            // S'il y a des résultats, retourne le nombre d'images associées à l'article
 	            if (rs.next()) {
 	                return rs.getInt(1);
 	            }
 	        }
 	    }
+	    // Retourne 0 si aucune image n'est associée à l'article
 	    return 0;
 	}
 
 	// ---------- Récupérer les données d'un article en particulier ----------
+	
+	// Cette méthode récupère les données d'un article spécifique en fonction de son identifiant.
+	// Elle prend en paramètre l'identifiant de l'article (idArticle).
+	// La requête SQL joint la table 'article' avec 'categorie' et 'image' pour récupérer toutes les informations nécessaires.
+	// Les données récupérées sont utilisées pour créer et renvoyer un objet Articles.
 	public Articles getArticle(int idArticle) {
 	    Connection cn = null;
 	    Articles produit = null;
 
+	    // Requête SQL pour récupérer les données de l'article, y compris la désignation de la catégorie et les noms d'images.
 	    String sql = "SELECT a.*, "
 	            + "c.designation AS desiCat, i.img AS imgArt "
 	            + "FROM article a "
@@ -717,15 +743,18 @@ public class Connexion {
 	            + "WHERE a.idArticle = ?";
 
 	    try {
-	    	cn = getDatabaseConnection();
+	        // Établissement d'une connexion à la base de données
+	        cn = getDatabaseConnection();
 	        PreparedStatement ps = cn.prepareStatement(sql);
 	        ps.setInt(1, idArticle);
 
 	        ResultSet rs = ps.executeQuery();
 	        if (rs.next()) {
+	            // Récupération des données de l'article et des images associées
 	            String imgArt = rs.getString("imgArt");
 	            List<String> images = (imgArt != null) ? Arrays.asList(imgArt.split(",")) : new ArrayList<>();
 
+	            // Création d'un objet Articles avec les données récupérées
 	            produit = new Articles(rs.getInt("idArticle"), rs.getString("designation"), rs.getInt("pu"),
 	                    rs.getInt("qty"), rs.getString("desiCat"), images);
 	        }
@@ -746,6 +775,7 @@ public class Connexion {
 	        }
 	     }
 
+	    // Renvoie l'objet Articles ou null si une exception s'est produite
 	    return produit;
 	}
 	

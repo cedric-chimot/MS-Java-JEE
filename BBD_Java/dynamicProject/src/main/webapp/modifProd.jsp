@@ -47,6 +47,25 @@
 	
 	            <!-- Input caché pour récupérer l'id du produit -->
 	            <input type="hidden" id="idArticle" name="idArticle" value="<%= request.getParameter("idArticle") %>" readonly>
+	            <!-- Champ pour modifier une image existante -->
+	            <div class="form-group mt-2">
+	            	<label class="form-label">Images actuelles :</label>
+	                <%
+						int idArticleToModify = Integer.parseInt(request.getParameter("idArticle"));
+						List<String> currentImages = c.recupImages(idArticleToModify);
+						
+						for (String imageName : currentImages) {
+						%>
+					        <img src="images/<%= imageName %>" alt="Image actuelle du produit" width="100">
+					        <input class="form-check-input" type="radio" name="selectedImage" value="<%= imageName %>">					    
+					<%
+						}
+					%>
+	            </div>
+	            <div class="form-group mt-2">
+				    <label class="form-label">Modifier une image existante :</label>
+				    <input type="file" id="newImgModify" name="newImgModify" class="form-control" size="255">
+				</div>
 	            <div class="form-group mt-2">
 	                <label class="form-label">Désignation :</label>
 	                <!-- "disabled" rend le champ visible mais non modifiable -->
@@ -64,33 +83,12 @@
 	                <label class="form-label">Catégorie :</label>
 	                <input type="text" id="selectCat" name="selectCat" class="form-control" value="<%= request.getAttribute("selectCat") %>" readonly>
 	            </div>
-	            <!-- Champ pour modifier une image existante -->
-	            <div class="form-group mt-2">
-	            	<label class="form-label">Images actuelles :</label>
-	                <%
-						int idArticleToModify = Integer.parseInt(request.getParameter("idArticle"));
-						List<String> currentImages = c.recupImages(idArticleToModify);
-						
-						for (String imageName : currentImages) {
-						%>
-						    <div class="form-group mt-2 text-center">
-						        <img src="images/<%= imageName %>" alt="Image actuelle du produit" width="100">
-						        <input class="form-check-input" type="radio" name="selectedImage" value="<%= imageName %>">
-						    </div>
-					<%
-						}
-					%>
-	            </div>
-	            <div class="form-group mt-2">
-				    <label class="form-label">Modifier une image existante :</label>
-				    <input type="file" id="newImgModify" name="newImgModify" class="form-control" size="255">
-				</div>
 	        </div>
 	    </fieldset>
 	    <div class="container text-center">
 	        <div>
 	            <a href="menuProd.jsp" class="d-grid gap-1 p-2" style="text-decoration: none;">
-	                <button type='submit' class="btn btn-primary btn-lg">Modifier/Ajouter</button>
+	                <button type='submit' class="btn btn-primary btn-lg">Modifier</button>
 	            </a>
 	            <a href="menuProd.jsp" class="d-grid gap-1 p-2" style="text-decoration: none;">
 	                <button type='submit' class="btn btn-warning btn-lg">Retour</button>
