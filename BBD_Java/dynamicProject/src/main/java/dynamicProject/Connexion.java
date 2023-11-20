@@ -779,6 +779,48 @@ public class Connexion {
 	    return produit;
 	}
 	
+	// ---------- Supprimer un article ----------
+	public void deleteProd(int idArticle) {
+		Connection cn = null;
+		try {
+			cn= getDatabaseConnection();
+			// Début de la transaction
+			cn.setAutoCommit(false);
+			
+			// Requête de suppression
+			String deleteArt = "DELETE FROM article WHERE idArticle = ?";
+			try(PreparedStatement psArt = cn.prepareStatement(deleteArt)) {
+				psArt.setInt(1, idArticle);
+				int rowsDeleted = psArt.executeUpdate();
+				System.out.println(rowsDeleted + " lignes supprimées dan la table article.");
+			}
+			
+			// Valider la transaction
+			cn.commit();
+		} catch(SQLException e) {
+			// Annulation de la transaction en cas d'erreur
+			try {
+				if(cn != null) {
+					cn.rollback();
+					System.out.println("Rollback effectué en raison de l'erreur : " + e.getMessage());
+				}
+			} catch(SQLException rollbackException) {
+				rollbackException.printStackTrace();
+			}
+			e.printStackTrace();
+		} finally {
+			// Rétablir l'auto-commit
+			try {
+				if(cn != null) {
+					cn.setAutoCommit(true);
+					cn.close();
+				}
+			} catch(SQLException closeException) {
+				closeException.printStackTrace();
+			}
+		}
+	}
+	
 	// ---------- Ajouter un nouveau produit Hibernate ----------
 	/*public void ajoutProdHibernate(Article a) {
 	    Configuration configuration = new Configuration().configure();

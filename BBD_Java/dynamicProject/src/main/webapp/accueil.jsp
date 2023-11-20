@@ -4,7 +4,7 @@
 <html>
 	<head>
 		<meta charset="UTF-8">
-		<link rel="stylesheet" href="css/bootstrap.min(1).css">
+		<link rel="stylesheet" href="css/bootstrap.min(3).css">
 		<title>Accueil</title>
 	</head>
 	<body>

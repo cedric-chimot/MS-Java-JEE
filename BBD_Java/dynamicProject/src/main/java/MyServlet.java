@@ -34,8 +34,13 @@ public class MyServlet extends HttpServlet {
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
-		response.getWriter().append("Served at: ").append(request.getContextPath());
+		String flag = request.getParameter("flag");
+		if(flag.equalsIgnoreCase("deleteProd")) {
+			this.doDeleteProd(request, response);
+		} else {
+			// TODO Auto-generated method stub
+			response.getWriter().append("Served at: ").append(request.getContextPath());
+		}
 	}
 
 	/**
@@ -384,6 +389,40 @@ public class MyServlet extends HttpServlet {
 	        // Gérer d'autres exceptions
 	        e.printStackTrace();
 	        response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Erreur lors de la modification du produit");
+	    }
+	}
+	
+	public void doDeleteProd(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	    // Récupérer l'id de l'article à supprimer
+	    String idArticleParam = request.getParameter("idArticle");
+
+	    if (idArticleParam != null && !idArticleParam.isEmpty()) {
+	        try {
+	            // Convertir l'id en entier
+	            int idArticle = Integer.parseInt(idArticleParam);
+
+	            System.out.println("Entrée dans doDeleteProd");
+	            System.out.println("Avant d'appeler co.deleteProd");
+	            // Appeler la méthode de suppression
+	            co.deleteProd(idArticle);
+	            System.out.println("Après avoir appelé co.deleteProd");
+	            
+	            // Redirection vers la page JSP de la liste des produits
+                request.getRequestDispatcher("/menuProd.jsp").forward(request, response);
+	        } catch (NumberFormatException e) {
+	            // Gérer le cas où la conversion échoue
+	            System.err.println("Erreur lors de la conversion de l'idArticle en entier : " + idArticleParam);
+	            e.printStackTrace(); // Ajouter cette ligne pour imprimer le message d'erreur complet
+	            // Renvoyer un message d'erreur ou rediriger vers une page d'erreur
+	            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "L'id du produit est invalide");
+	        } catch (Exception e) {
+	            // Gérer d'autres exceptions
+	            e.printStackTrace();
+	            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Erreur lors de la suppression du produit");
+	        }
+	    } else {
+	        // Gérer le cas où l'ID de l'article n'est pas spécifié
+	        response.getWriter().write("{\"error\": \"ID de l'article non spécifié\"}");
 	    }
 	}
 

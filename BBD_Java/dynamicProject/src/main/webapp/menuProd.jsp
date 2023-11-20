@@ -6,7 +6,7 @@
 <html>
 	<head>
 		<meta charset="ISO-8859-1">
-		<link rel="stylesheet" href="css/bootstrap.min(1).css">		
+		<link rel="stylesheet" href="css/bootstrap.min(3).css">		
 		<title>Gestion produits</title>
 	</head>
 	<body>
@@ -90,15 +90,33 @@
 								<img src="https://icons.iconarchive.com/icons/hopstarter/soft-scraps/128/Text-Edit-icon.png"
 									width="20" height="20">
 							</a>
-							<a href="menuProd.jsp" class="p-2" style="text-decoration: none;">	
-								<img src="https://icons.iconarchive.com/icons/hopstarter/sleek-xp-software/16/Windows-Close-Program-icon.png"
-									width="20" height="20">
+							<a href="MyServlet?flag=deleteProd&idArticle=<%= article.getIdArticle() %>" class="p-2" style="text-decoration: none;" onclick="confirmerSuppression('<%= article.getIdArticle() %>', event)">
+							    <img src="https://icons.iconarchive.com/icons/hopstarter/sleek-xp-software/16/Windows-Close-Program-icon.png"
+							        width="20" height="20">
 							</a>
 		    			</td>
 		    		</tr>
 		    		<% } %>
 		    	</tbody>		    	
 		    </table>
+		    <!-- Fenêtre modale de confirmation -->
+			<div class="modal" tabindex="-1" role="dialog" id="confirmationModal">
+			    <div class="modal-dialog" role="document">
+			        <div class="modal-content">
+			            <div class="modal-header">
+			                <h5 class="modal-title">Confirmation de suppression</h5>
+			                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			            </div>
+			            <div class="modal-body">
+			                <p>Voulez-vous vraiment supprimer cet article ?</p>
+			            </div>
+			            <div class="modal-footer">
+			                <a href="#" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</a>
+			                <a href="#" id="lienSuppression" class="btn btn-danger">Supprimer</a>
+			            </div>
+			        </div>
+			    </div>
+			</div>
 			<div>
 				<a href="ajoutProd.jsp" class="d-grid gap-1 p-2" style="text-decoration: none;">
 					<button type='submit' class="btn btn-primary btn-lg">Ajouter</button>
@@ -121,6 +139,19 @@
 			    </span>
 			</div>
 		</div>
+		
+		<script>
+		    // Fonction pour afficher la fenêtre modale de confirmation
+		    function confirmerSuppression(idArticle, event) {
+			    event.preventDefault();
+		        // Modifie le lien de suppression dans la fenêtre modale
+		        document.getElementById('lienSuppression').href = "MyServlet?flag=deleteProd&idArticle=" + idArticle;
+		        
+		        // Affiche la fenêtre modale
+		        var myModal = new bootstrap.Modal(document.getElementById('confirmationModal'));
+		        myModal.show();
+		    }
+		</script>
 		
 		<script src="js/produit.js"></script>
 	

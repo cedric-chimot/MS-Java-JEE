@@ -4,14 +4,14 @@
 <html>
 	<head>
 		<meta charset="ISO-8859-1">
-		<link rel="stylesheet" href="css/bootstrap.min(1).css">
+		<link rel="stylesheet" href="css/bootstrap.min(3).css">
 		<title>Menu</title>
 	</head>
 	<body>
 	
 		<%@ include file="navbar.jsp" %>
 		
-		<div class='container bg-secondary text-center gap-2'>
+		<div class='container bg-light text-center gap-2'>
 			<a href="connect.jsp">
 				<button type='button' class="btn btn-success btn-lg mt-2">Connection</button>
 			</a>

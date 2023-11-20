@@ -4,7 +4,7 @@
 <html>
 	<head>
 		<meta charset="ISO-8859-1">
-		<link rel="stylesheet" href="css/bootstrap.min(1).css">
+		<link rel="stylesheet" href="css/bootstrap.min(3).css">
 		<title>Inscription</title>
 	</head>
 	<body>
