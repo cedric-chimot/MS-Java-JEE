@@ -20,6 +20,13 @@ public class Articles {
 		this.images = images;
 	}
 	
+	public Articles(int idArticle, String designation, int qty) {
+		super();
+		this.idArticle = idArticle;
+		this.designation = designation;
+		this.qty = qty;
+	}
+
 	public List<String> getImages() {
 		return images;
 	}

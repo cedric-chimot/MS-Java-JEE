@@ -33,15 +33,17 @@ public class MyServlet extends HttpServlet {
 	/**
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
-	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		String flag = request.getParameter("flag");
-		if(flag.equalsIgnoreCase("deleteProd")) {
-			this.doDeleteProd(request, response);
-		} else {
-			// TODO Auto-generated method stub
-			response.getWriter().append("Served at: ").append(request.getContextPath());
-		}
-	}
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String flag = request.getParameter("flag");
+
+        if (flag.equalsIgnoreCase("deleteProd")) {
+            // Si le flag est "deleteProd", appelez la méthode doDeleteProd
+            this.doDeleteProd(request, response);
+        } else {
+            // TODO: Ajoutez le code pour les autres cas si nécessaire
+            response.getWriter().append("Served at: ").append(request.getContextPath());
+        }
+    }
 
 	/**
 	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
@@ -58,7 +60,9 @@ public class MyServlet extends HttpServlet {
 			this.doAjoutProd(request, response);
 		} else if(flag.equalsIgnoreCase("modifProd")) {
 			this.doModifProd(request, response);
-		} else {
+		} else if(flag.equalsIgnoreCase("ajoutCommande")) {
+			this.doAjoutCommande(request, response);
+		}  else {
 			// Si le paramètre flag n'est ni "connect" ni "inscrit", exécutez la méthode doGet
 			this.doGet(request, response);
 		}
@@ -401,11 +405,11 @@ public class MyServlet extends HttpServlet {
 	            // Convertir l'id en entier
 	            int idArticle = Integer.parseInt(idArticleParam);
 
-	            System.out.println("Entrée dans doDeleteProd");
-	            System.out.println("Avant d'appeler co.deleteProd");
 	            // Appeler la méthode de suppression
 	            co.deleteProd(idArticle);
-	            System.out.println("Après avoir appelé co.deleteProd");
+	            
+	            // Ajouter le message de confirmation à la session
+	            request.getSession().setAttribute("message", "Produit supprimé correctement!");
 	            
 	            // Redirection vers la page JSP de la liste des produits
                 request.getRequestDispatcher("/menuProd.jsp").forward(request, response);
@@ -425,7 +429,11 @@ public class MyServlet extends HttpServlet {
 	        response.getWriter().write("{\"error\": \"ID de l'article non spécifié\"}");
 	    }
 	}
-
+	
+	private void doAjoutCommande(HttpServletRequest request, HttpServletResponse response) {
+		
+	}
+	
 	// -------------------------- Méthode HIBERNATE --------------------------------
 	
 	/*private void doAjoutProdHibernate(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {

@@ -783,7 +783,7 @@ public class Connexion {
 	public void deleteProd(int idArticle) {
 		Connection cn = null;
 		try {
-			cn= getDatabaseConnection();
+			cn = getDatabaseConnection();
 			// Début de la transaction
 			cn.setAutoCommit(false);
 			
@@ -821,6 +821,171 @@ public class Connexion {
 		}
 	}
 	
+	// ---------- Méthode pour récupérer les utilisateurs inscrits ----------
+	public List<Users> recupAllUsers() {
+	    // Liste pour stocker les utilisateurs récupérés
+	    List<Users> userList = new ArrayList<>();
+
+	    try (
+	        // Établir la connexion à la base de données
+	        Connection cn = getDatabaseConnection();
+
+	        // Préparer la requête SQL pour récupérer tous les utilisateurs
+	        PreparedStatement psUsers = cn.prepareStatement("SELECT * FROM users");
+
+	        // Exécuter la requête et obtenir le résultat
+	        ResultSet rs = psUsers.executeQuery()
+	    ) {
+	        // Parcourir les résultats de la requête
+	        while (rs.next()) {
+	            // Extraire les données de chaque utilisateur
+	            int idUsers = rs.getInt("idUsers");
+	            String lname = rs.getString("lname");
+	            String fname = rs.getString("fname");
+
+	            // Créer un objet Users avec les données extraites
+	            Users user = new Users(idUsers, fname, lname);
+
+	            // Ajouter l'utilisateur à la liste
+	            userList.add(user);
+	        }
+
+	    } catch (SQLException e) {
+	        // Gérer les exceptions liées à la base de données
+	        e.printStackTrace();
+	    }
+
+	    // Retourner la liste des utilisateurs récupérés
+	    return userList;
+	}
+	
+	// ---------- Méthode pour récupérer tous les articles ----------
+	public List<Articles> getAllArticles() {
+	    // Liste pour stocker les articles récupérés
+	    List<Articles> articlesList = new ArrayList<>();
+
+	    try (
+	        // Établir la connexion à la base de données
+	        Connection cn = getDatabaseConnection();
+
+	        // Préparer la requête SQL pour récupérer tous les articles
+	        PreparedStatement query = cn.prepareStatement("SELECT * FROM article");
+
+	        // Exécuter la requête et obtenir le résultat
+	        ResultSet rs = query.executeQuery()
+	    ) {
+	        // Parcourir les résultats de la requête
+	        while (rs.next()) {
+	            // Extraire les données de chaque article
+	            int idArticle = rs.getInt("idArticle");
+	            String designation = rs.getString("designation");
+	            int qty = rs.getInt("qty");
+
+	            // Créer un objet Articles avec les données extraites
+	            Articles article = new Articles(idArticle, designation, qty);
+
+	            // Ajouter l'article à la liste
+	            articlesList.add(article);
+	        }
+
+	    } catch (SQLException e) {
+	        // Gérer les exceptions liées à la base de données
+	        e.printStackTrace();
+	    }
+
+	    // Retourner la liste des articles récupérés
+	    return articlesList;
+	}
+
+	// ---------- Méthode pour ajouter une commande client ----------
+	public void ajoutCommande(String dateCommande, int idUsers) {
+		Connection cn = null;
+		try {
+			cn = getDatabaseConnection();
+			cn.setAutoCommit(false);
+			
+			sql = "INSERT INTO commande(dateCommande, idUsers) VALUES(?,?)";
+			ps = cn.prepareStatement(sql);
+			ps.setString(1, dateCommande);
+			ps.setInt(2, idUsers);
+			ps.executeUpdate();
+			
+			// Validation de la transaction
+            cn.commit();
+
+        } catch (Exception e) {
+            // En cas d'erreur, annulation de la transaction
+            try {
+                if (cn != null) {
+                    cn.rollback();
+                    System.out.println("Rollback effectué en raison de l'erreur : " + e.getMessage());
+                }
+            } catch (SQLException rollbackException) {
+                rollbackException.printStackTrace();
+            }
+            e.printStackTrace();
+        } finally {
+            try {
+                // Rétablissement du mode auto-commit
+                if (cn != null) {
+                    cn.setAutoCommit(true);
+                    // Fermeture de la connexion
+                    cn.close();
+                }
+            } catch (SQLException closeException) {
+                closeException.printStackTrace();
+            }
+        }
+	}
+	
+	// ---------- Méthode pour récupérer l'ID de l'utilisateur à partir de son nom complet ----------
+	public int recupUserByName(String lname, String fname) {
+		Connection cn = null;
+		int idUser = -1;
+		
+		String getUserId = "SELECT idUsers FROM users WHERE lname = ? AND fname = ?";
+		try {
+			cn = getDatabaseConnection();
+			PreparedStatement psUserId = cn.prepareStatement(getUserId);
+			psUserId.setString(1, lname);
+			psUserId.setString(2, fname);
+			ResultSet rs = psUserId.executeQuery();
+			
+			if(rs.next()) {
+				idUser = rs.getInt("idUsers");
+			}
+			rs.close();
+			psUserId.close();
+			// Validation de la transaction
+            cn.commit();
+
+        } catch (Exception e) {
+            // En cas d'erreur, annulation de la transaction
+            try {
+                if (cn != null) {
+                    cn.rollback();
+                    System.out.println("Rollback effectué en raison de l'erreur : " + e.getMessage());
+                }
+            } catch (SQLException rollbackException) {
+                rollbackException.printStackTrace();
+            }
+            e.printStackTrace();
+        } finally {
+            try {
+                // Rétablissement du mode auto-commit
+                if (cn != null) {
+                    cn.setAutoCommit(true);
+                    // Fermeture de la connexion
+                    cn.close();
+                }
+            } catch (SQLException closeException) {
+                closeException.printStackTrace();
+            }
+        }
+		
+		return idUser;
+	}
+		
 	// ---------- Ajouter un nouveau produit Hibernate ----------
 	/*public void ajoutProdHibernate(Article a) {
 	    Configuration configuration = new Configuration().configure();

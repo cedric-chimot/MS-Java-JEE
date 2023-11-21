@@ -22,6 +22,9 @@
 		          <a class="nav-link text-light" href="menuProd.jsp">Produits</a>
 		        </li>
 		        <li class="nav-item">
+		          <a class="nav-link text-light" href="commandes.jsp">Commandes</a>
+		        </li>
+		        <li class="nav-item">
 		          <a class="nav-link text-light" href="menuCat.jsp">Catégories</a>
 		        </li>
 		        <li class="nav-item">

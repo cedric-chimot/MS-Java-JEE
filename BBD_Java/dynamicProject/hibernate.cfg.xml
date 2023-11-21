@@ -9,5 +9,6 @@
         <property name="hibernate.connection.username">root</property>
         <property name="hibernate.dialect">MySQLDialect</property>
         <mapping class="dynamicProject.Article"/>
+        <mapping class="dynamicProject.Commande"/>
     </session-factory>
 </hibernate-configuration>
