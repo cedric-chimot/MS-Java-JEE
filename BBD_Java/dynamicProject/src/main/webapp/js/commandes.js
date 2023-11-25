@@ -1,48 +1,33 @@
-// Déclaration d'une variable pour suivre l'index des lignes d'article
-var indexLigneArticle = 1;
+// Fonction JavaScript pour filtrer le tableau en temps réel
+function filterTable() {
+    // Récupérer l'élément d'entrée de recherche
+    var input, filter, table, tr, td, i, txtValue;
+    input = document.getElementById("search");
 
-// Fonction appelée lors de l'ajout d'une nouvelle ligne d'article
-function ajoutNouvelleLigneArticle() {
-    // Récupérer les éléments HTML des menus déroulants d'article et de quantité
-    var selectedArticle = document.getElementById('article1');
-    var quantiteInput = document.getElementById('quantite1');
+    // Convertir le texte de l'entrée en majuscules pour une recherche insensible à la casse
+    filter = input.value.toUpperCase();
 
-    // Récupérer les valeurs sélectionnées dans les menus déroulants
-    var articleId = selectedArticle.options[selectedArticle.selectedIndex].value;
-    var quantiteValue = quantiteInput.value;
+    // Récupérer le tableau et toutes ses lignes
+    table = document.getElementById("tableauArticles");
+    tr = table.getElementsByTagName("tr");
+    
+    // Parcourir toutes les lignes du tableau et masquer celles qui ne correspondent pas à la recherche
+    for (i = 0; i < tr.length; i++) {
+        // Récupérer le premier <td> de chaque ligne, qui contient la désignation
+        td = tr[i].getElementsByTagName("td")[0];
 
-    // Vérifier si une option d'article est sélectionnée et si la quantité est saisie
-    if (articleId !== "" && quantiteValue !== "") {
-        // Créer une nouvelle ligne pour le tableau
-        var nouvelleLigneTableau = document.createElement('tr');
+        if (td) {
+            // Récupérer le texte à l'intérieur du <td>
+            txtValue = td.textContent || td.innerText;
 
-        // Créer une cellule pour la colonne "Articles"
-        var colonneArticle = document.createElement('td');
-        // Définir le texte de la cellule avec le nom de l'article sélectionné
-        colonneArticle.textContent = selectedArticle.options[selectedArticle.selectedIndex].text;
-        // Ajouter une classe pour le style Bootstrap (texte blanc)
-        colonneArticle.classList.add('text-light');
-
-        // Créer une cellule pour la colonne "Quantité"
-        var colonneQuantite = document.createElement('td');
-        // Définir le texte de la cellule avec la quantité saisie
-        colonneQuantite.textContent = quantiteValue;
-        // Ajouter une classe pour le style Bootstrap (texte blanc)
-        colonneQuantite.classList.add('text-light');
-
-        // Ajouter les cellules à la ligne du tableau
-        nouvelleLigneTableau.appendChild(colonneArticle);
-        nouvelleLigneTableau.appendChild(colonneQuantite);
-
-        // Ajouter la nouvelle ligne au tableau existant dans le HTML
-        var tbodyArticles = document.getElementById('tbodyArticles');
-        tbodyArticles.appendChild(nouvelleLigneTableau);
-
-        // Réinitialiser les valeurs des menus déroulants et du champ de quantité
-        selectedArticle.value = "";
-        quantiteInput.value = "";
-    } else {
-        // Afficher une alerte si une option d'article n'est pas sélectionnée ou si la quantité n'est pas saisie
-        alert("Veuillez sélectionner un article et saisir une quantité.");
+            // Vérifier si le texte de la désignation contient le texte de recherche
+            if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                // Afficher la ligne si elle correspond à la recherche
+                tr[i].style.display = "";
+            } else {
+                // Masquer la ligne si elle ne correspond pas à la recherche
+                tr[i].style.display = "none";
+            }
+        }
     }
 }

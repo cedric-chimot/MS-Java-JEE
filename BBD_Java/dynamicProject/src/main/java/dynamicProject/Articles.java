@@ -9,6 +9,7 @@ public class Articles {
 	private int qty;
 	private String categorie;
 	private List<String> images;
+    private List<LigneCommande> lignesCommande;
 
 	public Articles( int idArticle, String designation, int pu, int qty, String categorie, List<String> images) {
 		super();
@@ -26,6 +27,16 @@ public class Articles {
 		this.designation = designation;
 		this.qty = qty;
 	}
+	
+	public Articles(int idArticle, String designation, int pu, int qty, String categorie, List<String> images, List<LigneCommande> lignesCommande) {
+        this.idArticle = idArticle;
+        this.designation = designation;
+        this.pu = pu;
+        this.qty = qty;
+        this.categorie = categorie;
+        this.images = images;
+        this.lignesCommande = lignesCommande;
+    }
 
 	public List<String> getImages() {
 		return images;
@@ -62,5 +73,9 @@ public class Articles {
 	public String getCategorie() {
 		return categorie;
 	}
+	
+	public List<LigneCommande> getLignesCommande() {
+        return lignesCommande;
+    }
 
 }

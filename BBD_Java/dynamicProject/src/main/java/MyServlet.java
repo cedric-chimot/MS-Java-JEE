@@ -6,6 +6,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.*;
 
 import dynamicProject.Articles;
@@ -48,25 +50,26 @@ public class MyServlet extends HttpServlet {
 	/**
 	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
 	 */
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		String flag = request.getParameter("flag");
-		if(flag.equalsIgnoreCase("connect")) {
-			this.doConnexion(request,response);
-		} else if(flag.equalsIgnoreCase("inscrit")) {
-			this.doInscription(request, response);
-		} else if(flag.equalsIgnoreCase("categorie")) {
-			this.doAjoutCat(request, response);
-		} else if(flag.equalsIgnoreCase("produit")) {
-			this.doAjoutProd(request, response);
-		} else if(flag.equalsIgnoreCase("modifProd")) {
-			this.doModifProd(request, response);
-		} else if(flag.equalsIgnoreCase("ajoutCommande")) {
-			this.doAjoutCommande(request, response);
-		}  else {
-			// Si le paramètre flag n'est ni "connect" ni "inscrit", exécutez la méthode doGet
-			this.doGet(request, response);
-		}
-	}
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String flag = request.getParameter("flag");
+
+        if (flag.equalsIgnoreCase("connect")) {
+            this.doConnexion(request, response);
+        } else if (flag.equalsIgnoreCase("inscrit")) {
+            this.doInscription(request, response);
+        } else if (flag.equalsIgnoreCase("categorie")) {
+            this.doAjoutCat(request, response);
+        } else if (flag.equalsIgnoreCase("produit")) {
+            this.doAjoutProd(request, response);
+        } else if (flag.equalsIgnoreCase("modifProd")) {
+            this.doModifProd(request, response);
+        } else if (flag != null && flag.equals("ajoutCommandeEtLignes")) {
+            ajoutCommandeEtLignes(request, response);
+        } else {
+            // Si le paramètre flag n'est ni "connect" ni "inscrit", exécutez la méthode doGet
+            this.doGet(request, response);
+        }
+    }
 
 	private void doConnexion(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         // Récupération des paramètres de la requête
@@ -426,14 +429,90 @@ public class MyServlet extends HttpServlet {
 	        }
 	    } else {
 	        // Gérer le cas où l'ID de l'article n'est pas spécifié
-	        response.getWriter().write("{\"error\": \"ID de l'article non spécifié\"}");
+	        response.getWriter().write("{\"error\": \"ID de l'article manquant\"}");
 	    }
 	}
 	
-	private void doAjoutCommande(HttpServletRequest request, HttpServletResponse response) {
-		
+	private void ajoutCommandeEtLignes(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	    try {
+	        // Récupérer les paramètres de la requête
+	        String dateCommande = request.getParameter("dateCommande");
+	        String clientIdParam = request.getParameter("client");
+	        int idClient = 0;  // ou une valeur par défaut appropriée
+	        if (!clientIdParam.isEmpty()) {
+	            // Convertir le paramètre client en entier s'il n'est pas vide
+	            idClient = Integer.parseInt(clientIdParam);
+	        }
+
+	        // Récupérer les lignes de commande depuis les paramètres de la requête
+	        Map<Integer, Integer> lignesCommande = new HashMap<>();
+	        Enumeration<String> parameterNames = request.getParameterNames();
+	        while (parameterNames.hasMoreElements()) {
+	            String paramName = parameterNames.nextElement();
+	            if (paramName.startsWith("articles") && paramName.length() > "articles".length()) {
+	                // Vérifier si le paramètre est lié aux articles
+	                String[] values = request.getParameterValues(paramName);
+	                if (values != null && values.length > 0) {
+	                    // Si des valeurs sont présentes, traiter chaque valeur
+	                    for (String value : values) {
+	                        // Convertir l'ID de l'article en entier
+	                        int idArticle = Integer.parseInt(value);
+	                        // Récupérer la quantité associée à l'article
+	                        int quantite = Integer.parseInt(request.getParameter("quantite" + idArticle));
+	                        // Ajouter l'article et sa quantité à la map des lignes de commande
+	                        lignesCommande.put(idArticle, quantite);
+	                    }
+	                }
+	            }
+	        }
+
+	        // Ajouter la commande avec ses lignes de commande à la base de données
+	        Connexion co = new Connexion();
+	        Connection cn = null;
+	        int idCommande = -1;
+
+	        try {
+	            cn = co.getDatabaseConnection();
+	            cn.setAutoCommit(false); // Début de la transaction
+
+	            // Appeler la méthode ajouterCommande de la classe Connexion pour ajouter la commande et ses lignes de commande
+	            idCommande = co.ajouterCommande(dateCommande, idClient, lignesCommande, cn);
+
+	            // Redirection vers la page de commandes après l'ajout
+	            String redirectURL = "commandes.jsp";
+	            response.sendRedirect(redirectURL);
+
+	        } catch (SQLException e) {
+	            // En cas d'erreur, effectuer un rollback de la transaction
+	            if (cn != null) {
+	                try {
+	                    cn.rollback();
+	                } catch (SQLException rollbackException) {
+	                    rollbackException.printStackTrace();
+	                }
+	            }
+	            e.printStackTrace(); // Afficher l'erreur
+
+	        } finally {
+	            // Rétablir le mode de traitement par défaut de la connexion
+	            if (cn != null) {
+	                try {
+	                    cn.setAutoCommit(true);
+	                } catch (SQLException autoCommitException) {
+	                    autoCommitException.printStackTrace();
+	                }
+	            }
+	        }
+
+	        // Afficher l'ID de la commande ajoutée (peut être utile pour le débogage)
+	        System.out.println("ID de la commande ajoutée : " + idCommande);
+
+	    } catch (NumberFormatException nfe) {
+	        // En cas d'erreur de conversion numérique, afficher l'erreur
+	        nfe.printStackTrace();
+	    }
 	}
-	
+
 	// -------------------------- Méthode HIBERNATE --------------------------------
 	
 	/*private void doAjoutProdHibernate(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {

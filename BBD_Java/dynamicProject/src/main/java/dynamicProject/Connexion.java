@@ -520,7 +520,7 @@ public class Connexion {
 	}
 	
 	// ---------- Nouvelle méthode pour obtenir une connexion à la base de données ----------
-    private Connection getDatabaseConnection() throws SQLException {
+    public Connection getDatabaseConnection() throws SQLException {
         Connection cn = myCnx();
         cn.setAutoCommit(false);
         return cn;
@@ -861,83 +861,100 @@ public class Connexion {
 	
 	// ---------- Méthode pour récupérer tous les articles ----------
 	public List<Articles> getAllArticles() {
-	    // Liste pour stocker les articles récupérés
+        List<Articles> articlesList = new ArrayList<>();
+
+        try (
+            Connection cn = getDatabaseConnection();
+            PreparedStatement query = cn.prepareStatement("SELECT * FROM article");
+            ResultSet rs = query.executeQuery()
+        ) {
+            while (rs.next()) {
+                int idArticle = rs.getInt("idArticle");
+                String designation = rs.getString("designation");
+                int qty = rs.getInt("qty");
+
+                Articles article = new Articles(idArticle, designation, qty);
+                articlesList.add(article);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return articlesList;
+    }
+	
+	// ---------- Méthode pour récupérer tous les articles en fonction de la catégorie ----------
+	public List<Articles> getArticlesByCategory(String category) {
 	    List<Articles> articlesList = new ArrayList<>();
 
 	    try (
-	        // Établir la connexion à la base de données
 	        Connection cn = getDatabaseConnection();
-
-	        // Préparer la requête SQL pour récupérer tous les articles
-	        PreparedStatement query = cn.prepareStatement("SELECT * FROM article");
-
-	        // Exécuter la requête et obtenir le résultat
-	        ResultSet rs = query.executeQuery()
+	        PreparedStatement query = cn.prepareStatement("SELECT * FROM article WHERE category = ?");
 	    ) {
-	        // Parcourir les résultats de la requête
+	        query.setString(1, category);
+	        ResultSet rs = query.executeQuery();
+
 	        while (rs.next()) {
-	            // Extraire les données de chaque article
 	            int idArticle = rs.getInt("idArticle");
 	            String designation = rs.getString("designation");
 	            int qty = rs.getInt("qty");
 
-	            // Créer un objet Articles avec les données extraites
 	            Articles article = new Articles(idArticle, designation, qty);
-
-	            // Ajouter l'article à la liste
 	            articlesList.add(article);
 	        }
 
 	    } catch (SQLException e) {
-	        // Gérer les exceptions liées à la base de données
 	        e.printStackTrace();
 	    }
 
-	    // Retourner la liste des articles récupérés
 	    return articlesList;
 	}
 
-	// ---------- Méthode pour ajouter une commande client ----------
-	public void ajoutCommande(String dateCommande, int idUsers) {
-		Connection cn = null;
-		try {
-			cn = getDatabaseConnection();
-			cn.setAutoCommit(false);
-			
-			sql = "INSERT INTO commande(dateCommande, idUsers) VALUES(?,?)";
-			ps = cn.prepareStatement(sql);
-			ps.setString(1, dateCommande);
-			ps.setInt(2, idUsers);
-			ps.executeUpdate();
-			
-			// Validation de la transaction
-            cn.commit();
+	// ---------- Ajouter une commande avec ses lignes de commande ----------
+	public int ajouterCommande(String dateCommande, int idUsers, Map<Integer, Integer> lignesCommande, Connection cn) throws SQLException {
+        int idCommande = -1;
 
-        } catch (Exception e) {
-            // En cas d'erreur, annulation de la transaction
-            try {
-                if (cn != null) {
-                    cn.rollback();
-                    System.out.println("Rollback effectué en raison de l'erreur : " + e.getMessage());
-                }
-            } catch (SQLException rollbackException) {
-                rollbackException.printStackTrace();
-            }
-            e.printStackTrace();
-        } finally {
-            try {
-                // Rétablissement du mode auto-commit
-                if (cn != null) {
-                    cn.setAutoCommit(true);
-                    // Fermeture de la connexion
-                    cn.close();
-                }
-            } catch (SQLException closeException) {
-                closeException.printStackTrace();
+        try (PreparedStatement psCommande = cn.prepareStatement(
+                "INSERT INTO commande (dateCommande, idUsers) VALUES (?, ?)",
+                Statement.RETURN_GENERATED_KEYS)) {
+
+            psCommande.setString(1, dateCommande);
+            psCommande.setInt(2, idUsers);
+
+            // Exécuter la requête pour ajouter la commande
+            psCommande.executeUpdate();
+
+            // Récupérer l'ID généré pour la commande
+            ResultSet rs = psCommande.getGeneratedKeys();
+            if (rs.next()) {
+                idCommande = rs.getInt(1);
+
+                // Ajouter les lignes de commande associées
+                ajouterLignesCommande(cn, idCommande, lignesCommande);
             }
         }
-	}
-	
+
+        return idCommande;
+    }
+
+    public void ajouterLignesCommande(Connection cn, int idCommande, Map<Integer, Integer> lignesCommande) throws SQLException {
+        // Utilisez la connexion (cn) pour ajouter les lignes de commande
+        try (PreparedStatement psLigneCommande = cn.prepareStatement(
+                "INSERT INTO lignecommande (idCommande, idArticle, qtyCommandee) VALUES (?, ?, ?)")) {
+
+            for (Map.Entry<Integer, Integer> entry : lignesCommande.entrySet()) {
+                // Ajouter les paramètres à la requête
+                psLigneCommande.setInt(1, idCommande);
+                psLigneCommande.setInt(2, entry.getKey());
+                psLigneCommande.setInt(3, entry.getValue());
+
+                // Exécuter la requête pour ajouter la ligne de commande
+                psLigneCommande.executeUpdate();
+            }
+        }
+    }
+    
 	// ---------- Méthode pour récupérer l'ID de l'utilisateur à partir de son nom complet ----------
 	public int recupUserByName(String lname, String fname) {
 		Connection cn = null;
@@ -985,7 +1002,170 @@ public class Connexion {
 		
 		return idUser;
 	}
-		
+	
+	// ---------- Méthode pour récupérer l'id de la commande ----------
+	public int recupIdCommande(String dateCommande, int idUsers) throws SQLException {
+	    int idCommande = -1;
+
+	    try (Connection cn = getDatabaseConnection();
+	         PreparedStatement ps = cn.prepareStatement("SELECT idCommande FROM commande WHERE dateCommande = ? AND idUsers = ?")) {
+
+	        cn.setAutoCommit(false);
+
+	        ps.setString(1, dateCommande);
+	        ps.setInt(2, idUsers);
+
+	        try (ResultSet rs = ps.executeQuery()) {
+	            if (rs.next()) {
+	                idCommande = rs.getInt("idCommande");
+	            }
+	        }
+
+	        cn.commit();
+	    } catch (SQLException e) {
+	        rollbackAndHandleException(e);
+	    }
+
+	    return idCommande;
+	}
+	
+	// ---------- Récupère toutes les commandes avec les détails des lignes de commande associées ----------
+	/**
+	* @return Une liste d'objets Commande avec les détails des lignes de commande.
+	*/
+	public List<Commande> getAllCommandesWithLignes() {
+	    List<Commande> commandes = new ArrayList<>();
+
+	    try (Connection connection = getDatabaseConnection();
+	         Statement statement = connection.createStatement();
+	         ResultSet resultSet = statement.executeQuery("SELECT * FROM commande")) {
+
+	        while (resultSet.next()) {
+	            int idCommande = resultSet.getInt("idCommande");
+	            String dateCommande = resultSet.getString("dateCommande");
+	            int idClient = resultSet.getInt("idUsers");
+
+	            // Récupérer les lignes de commande associées à cette commande
+	            List<LigneCommande> lignesCommande = getLignesCommandeForCommande(idCommande);
+
+	            Commande commande = new Commande(idCommande, dateCommande, idClient, lignesCommande);
+	            commandes.add(commande);
+	        }
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+
+	    return commandes;
+	}
+
+	// ---------- Récupère un utilisateur par son ID ----------
+	/**
+	* @param userId L'ID de l'utilisateur à récupérer.
+	* @return Un objet Users représentant l'utilisateur.
+	*/
+	public Users getUserById(int userId) {
+	    Users user = null;
+
+	    try (Connection connection = getDatabaseConnection();
+	         PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM users WHERE idUsers = ?")) {
+
+	        preparedStatement.setInt(1, userId);
+
+	        try (ResultSet resultSet = preparedStatement.executeQuery()) {
+	            if (resultSet.next()) {
+	                // Récupérer les informations de l'utilisateur depuis le ResultSet
+	                int id = resultSet.getInt("idUsers");
+	                String fname = resultSet.getString("fname");
+	                String lname = resultSet.getString("lname");
+
+	                // Créer une instance de Users
+	                user = new Users(id, fname, lname);
+	            }
+	        }
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+
+	    return user;
+	}
+
+	// ---------- Récupère un article par son ID ----------
+	/**
+	* @param idArticle L'ID de l'article à récupérer.
+	* @return Un objet Articles représentant l'article.
+	*/
+	public Articles getArticleById(int idArticle) {
+	    Articles article = null;
+
+	    try (Connection connection = getDatabaseConnection();
+	         PreparedStatement statement = connection.prepareStatement("SELECT * FROM article WHERE idArticle = ?")) {
+
+	        statement.setInt(1, idArticle);
+
+	        try (ResultSet resultSet = statement.executeQuery()) {
+	            if (resultSet.next()) {
+	                int id = resultSet.getInt("idArticle");
+	                String designation = resultSet.getString("designation");
+	                int qty = resultSet.getInt("qty"); // Assurez-vous d'ajuster les colonnes en fonction de votre schéma de base de données
+
+	                // Créez une instance de la classe Articles avec les données récupérées
+	                article = new Articles(id, designation, qty);
+	            }
+	        }
+
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+
+	    return article;
+	}
+
+	
+	// ---------- Récupère toutes les lignes de commande associées à une commande donnée ----------
+	/**
+	* @param idCommande L'ID de la commande pour laquelle on récupère les lignes de commande.
+	* @return Une liste d'objets LigneCommande associés à la commande.
+	*/
+	public List<LigneCommande> getLignesCommandeForCommande(int idCommande) {
+	    List<LigneCommande> lignesCommande = new ArrayList<>();
+
+	    try (Connection connection = getDatabaseConnection();
+	         PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM lignecommande WHERE idCommande = ?")) {
+
+	        preparedStatement.setInt(1, idCommande);
+
+	        try (ResultSet resultSet = preparedStatement.executeQuery()) {
+	            while (resultSet.next()) {
+	                // Récupérer les informations de la ligne de commande depuis le ResultSet
+	                int idLigneCommande = resultSet.getInt("idLigneCommande");
+	                int idArticle = resultSet.getInt("idArticle");
+	                int qtyCommandee = resultSet.getInt("qtyCommandee");
+
+	                // Créer une instance de LigneCommande
+	                LigneCommande ligneCommande = new LigneCommande(idLigneCommande, idCommande, idArticle, qtyCommandee);
+	                lignesCommande.add(ligneCommande);
+	            }
+	        }
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+
+	    return lignesCommande;
+	}
+
+	// ---------- Méthode utilitaire pour effectuer un rollback et gérer les exceptions ----------
+	private void rollbackAndHandleException(SQLException e) {
+	    try {
+	        if (cn != null) {
+	            cn.rollback();
+	            System.out.println("Rollback effectué en raison de l'erreur : " + e.getMessage());
+	        }
+	    } catch (SQLException rollbackException) {
+	        rollbackException.printStackTrace();
+	    }
+	    e.printStackTrace();
+	}
+
 	// ---------- Ajouter un nouveau produit Hibernate ----------
 	/*public void ajoutProdHibernate(Article a) {
 	    Configuration configuration = new Configuration().configure();
@@ -996,16 +1176,5 @@ public class Connexion {
 	    tr.commit();
 	    session.close();
 	    sf.close();
-	}*/
-		
-	/*public static void main(String[] args) throws SQLException {
-		// Récupérer l'objet Connection
-		Connexion db = new Connexion();
-		Connection cnx = null;
-		cnx = db.myCnx();
-		
-		db.insertDesignation("Jeux video");
-		
-		//db.fermerCnx();
 	}*/
 }

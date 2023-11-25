@@ -35,6 +35,11 @@
 	    <artifactId>jstl</artifactId>
 	    <version>1.2</version>
 	</dependency>	
+	<dependency>
+    <groupId>org.json</groupId>
+    <artifactId>json</artifactId>
+    <version>20210307</version> <!-- Utilisez la dernière version disponible -->
+</dependency>
   </dependencies>
   <build>
     <plugins>
